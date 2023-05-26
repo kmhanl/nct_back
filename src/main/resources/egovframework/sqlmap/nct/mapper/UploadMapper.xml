@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kaits.nct.common.mapper.UploadMapper">
+	<select id="getNewFileMeta" resultType="String">
+		/**
+		 * 새로운 파일코드 조회
+		 * UploadMapper > getNewFileMeta
+		 */
+		SELECT 
+			CONCAT(DATE_FORMAT(NOW(),'%Y'),'-',DATE_FORMAT(NOW(),'%m'),'-',DATE_FORMAT(NOW(),'%d'),'-',DATE_FORMAT(NOW(),'%H'),'-',LPAD(IFNULL(MAX(RIGHT(krs.NCT_FILE_META,4)),0)+1,4,'0')) AS FILE_CODE
+		FROM kaits_nct_file_meta krs 
+		WHERE SUBSTRING(krs.NCT_FILE_META,1,13) = CONCAT(DATE_FORMAT(NOW(),'%Y'),'-',DATE_FORMAT(NOW(),'%m'),'-',DATE_FORMAT(NOW(),'%d'),'-',DATE_FORMAT(NOW(),'%H'))
+	</select>
+	<insert id="saveFileMeta" parameterType="nctFileMetaVO">
+		INSERT INTO kaits_nct_file_meta (
+		    NCT_FILE_META
+			,NCT_FILE_NAME
+			,NCT_FILE_ORIGIN_NM
+			,NCT_FILE_PATH
+			,NCT_FILE_SIZE
+			,NCT_FILE_KEY
+		) VALUES (
+		    #{nctFileMeta}
+		    , #{nctFileName}
+		    , #{nctFileOriginNm}
+		    , #{nctFilePath}
+		    , #{nctFileSize}
+		    , #{nctFileKey}
+		)
+	</insert>
+	<insert id="saveFileIdx" parameterType="nctFileVO">
+		INSERT INTO kaits_nct_file (
+		    NCT_FILE_IDX
+			,NCT_FILE_META
+			,NCT_FILE_TYPE
+			,NCT_FILE_SORT
+			,NCT_USE_CODE
+			,NCT_FILE_VIEW
+			,NCT_FILE_REG_ID
+			,NCT_FILE_REG_DATE
+		) VALUES (
+		    (SELECT IFNULL(MAX(kfi1.NCT_FILE_IDX),0)+1 FROM kaits_nct_file kfi1 WHERE 1=1)
+		    , #{nctFileMeta}
+		    , #{nctFileType}
+		    , #{nctFileSort}
+		    , #{nctUseCode}
+		    , "Y"
+		    , #{nctFileRegId}
+		    , NOW()
+		)
+	</insert>
+</mapper>

@@ -1,0 +1,202 @@
+@charset "UTF-8";
+.nctContentWrapper {position: relative;flex:1;display:block;-webkit-box-sizing: border-box;box-sizing: border-box;/*padding:180px 50px 65px 50px*/}
+.nctContentWrapper.wrapTypq01{height:calc(100% - 213px);margin-top:162px;overflow-y: scroll;background: #f9f9f9;}
+
+.BodyBgGray {background:#f1f3f5}
+.body_wrapper03 {flex: 1;height: 100%;display: block;-webkit-box-sizing: border-box;box-sizing: border-box;padding: 92px 00px 70px 00px;}
+.BodyTopUtile .tap_btn {position: absolute;top: 15px;right: 50px;display: inline-block;font-size: 19px;text-align: left;padding: 8px 20px 7px 20px;font-weight: 200;color: #fff;background: #157efb;border-radius: 4px;}
+
+
+.nctContentbody{padding:20px 50px 15px 20px;}
+
+.nctContentVbody{display:flex;height: calc(100% - 64px);padding:15px 50px 15px 50px;-webkit-box-sizing: border-box;box-sizing: border-box;}
+
+
+.VbodyTitle{text-align: center;display: block;-webkit-box-sizing: border-box;box-sizing: border-box;box-shadow: 0 3px 10px rgb(0 0 0 / 7%);}
+.VbodyTitle .ViewTitle{display:block;font-size: 25px;color: #222;font-weight: 600;text-align: center;padding: 15px 0 15px 0;background:#fff;}
+.VbodyTitle .TitleTech{color: #2a80eb;}
+.VbodyTitle .ViewSubTitle{font-size: 20px;color: #888;font-weight: 400;text-align: center;padding-left: 5px;}
+.VbodyTitle .ViewTitleBar{display: block;height: 5px;background: linear-gradient(45deg, #2a80eb 0%, rgba(148,140,236,1) 100%);}
+
+
+.nctContentVbody .Box_l{margin-right:10px;}
+.nctContentVbody .Box_c{margin:0 10px 0 10px ;}
+.nctContentVbody .Box_r{margin-left:10px;}
+.nctConItemBox{display:flex;flex-direction: column;flex:1;-webkit-box-sizing: border-box;box-sizing: border-box;background:#fff;border-radius: 10px;brder;box-shadow: 0 3px 10px rgb(0 0 0 / 7%);}
+.nctConItemBox .ItemTitBox{display:flex;overflow:hidden;align-items: center;justify-content: center;overflow: hidden;border-bottom: 1px dashed #d3d3d3;padding:15px 15px 10px 15px;border-radius: 10px 10px 0 0;-webkit-box-sizing: border-box;box-sizing: border-box;}
+.nctConItemBox .ItemTitBox .ItemTit{flex:1;display:inline-block;font-size:18px;font-weight:500;}
+
+.nctConItemBox .ItemTitBox .ItemBoxBtn{display: inline-block;padding: 5px 15px;border: 1px solid #d3d3d3;font-size: 15px;font-weight: 400;background: #fff;color: #222;background: #fbfcfd;border-radius: 6px;}
+.nctConItemBox .ItemTitBox .ItemBoxBtn:hover{border: 1px solid #2a80eb;color:#2a80eb;}
+
+.nctConItemBox .ItemConBox{display:block;-webkit-box-sizing: border-box;box-sizing: border-box;}
+.nctConItemBox .ItemConToMment{padding:20px 15px;margin-top:10px;font-size:17px;font-weight:200;text-align:center;color:#9d9d9d}
+.nctConItemBox .ItemConToMment span{font-weight:400;color:#2a80eb}
+
+.dpStatus{padding:0 15px 15px 15px;-webkit-box-sizing: border-box;box-sizing: border-box;text-align:center;font-size:16px;font-weight:200;color:#444;}
+.dpStatus .dpStatus{}
+.dpStatus .dpStatusItem{display:flex;margin-bottom:10px;border: 1px solid #e1e1e1;border-radius: 6px;align-items: center;justify-content: center;}
+.dpStatus .dpStatusItem .StatusLabel{min-width:80px;color:#9d9d9d}
+.dpStatus .dpStatusItem .StatusData{position: relative;display:flex;flex:1;border-left:1px dashed #e1e1e1;flex-direction: column;align-items: start;justify-content: center;}
+.dpStatus .dpStatusItem .StatusData::before {
+border-color:#e1e1e1 transparent;
+border-style: solid;
+border-width: 0 6px 6px 6px;
+content: '';
+display: block;
+left: -6px;
+position: absolute;
+bottom: -1px;
+width: 0;
+z-index: 0;
+}
+.dpStatus .dpStatusItem .StatusData::after {
+border-color: #e1e1e1 transparent;
+border-style: solid;
+border-width: 6px 6px 0px 6px  ;
+content: '';
+display: block;
+left: -6px;
+position: absolute;
+top: -1px;
+width: 0;
+z-index: 0;
+}
+
+.BodyList .CommitListD .Datecho .btn{position: relative;display: inline-block;padding: 6px 10px;margin:0 2px;font-size: 17px;font-weight: 200;border-radius: 4px;}
+
+.BodyList .CommitListD .Datecho .canEx{background: #FFB27D;border:1px solid #FFB27D;color: #fff;padding: 6px 10px 6px 25px;} /* 전문위 취소 */
+.BodyList .CommitListD .Datecho .canEx::before{position: absolute;content: "";width:18px;height:2px;display: block;top: 16px;left:6px;background: #fff;transform: rotate(-45deg);border-radius: 2px;}
+.BodyList .CommitListD .Datecho .canEx::after{position: absolute;content: "";width:18px;height:2px;display: block;top: 16px;left:6px;background: #fff;transform: rotate(45deg);border-radius: 2px;}
+    
+    
+.BodyList .CommitListD .Datecho .goEx{background: #02C65C;border:1px solid #02C65C;color: #fff;padding: 6px 10px 6px 25px;} /* 전문위 개최*/
+.BodyList .CommitListD .Datecho .goEx:after{border-color: #fff transparent;
+border-style: solid;
+border-width: 0px 10px 8px 0px  ;
+content: '';
+display: block;
+left: 10px;
+position: absolute;
+top: 10px;
+width: 0;
+z-index: 0;
+}
+.BodyList .CommitListD .Datecho .goEx:before{border-color: #fff transparent;
+border-style: solid;
+border-width: 8px 9px 0px 0px ;
+content: '';
+display: block;
+left: 10px;
+position: absolute;
+top: 18px;
+width: 0;
+z-index: 0;
+}
+
+.BodyList .CommitListD .Datecho .backEx{background: #FF9393;color: #fff;border:1px solid #FF9393;padding: 6px 10px 6px 25px;} /* 개최 회수  */
+.BodyList .CommitListD .Datecho .backEx::before{position: absolute;content: "";width:10px;height:2px;display: block;top: 13px;left:10px;background: #fff;transform: rotate(-45deg);border-radius: 2px;}
+.BodyList .CommitListD .Datecho .backEx::after{position: absolute;content: "";width:10px;height:2px;display: block;top: 19px;left:10px;background: #fff;transform: rotate(45deg);border-radius: 2px;}
+
+
+.BodyList .CommitListD .Datecho .endEx{background: #2a80eb;color: #fff;padding: 6px 10px 6px 25px;} /* 전문위 종료 */
+.BodyList .CommitListD .Datecho .endEx::before{position: absolute;content: "";width:10px;height:10px;display: block;top: 11px;left:7px;border:2px solid #fff;border-radius: 8px;}
+.BodyList .CommitListD .Datecho .endEx::after{position: absolute;content: "";width:2px;height:8px;display: block;top: 8px;left:12px;background: #fff;border:1px solid #2a80eb;border-radius: 2px;}
+
+
+
+.BodyList .CommitListD .Datecho .endbackEx{background: #222;color: #fff;padding: 6px 10px 6px 25px;} /*  종료 회수 */
+.BodyList .CommitListD .Datecho .endbackEx::before{position: absolute;content: "";width:10px;height:2px;display: block;top: 13px;left:10px;background: #fff;transform: rotate(-45deg);border-radius: 2px;}
+.BodyList .CommitListD .Datecho .endbackEx::after{position: absolute;content: "";width:10px;height:2px;display: block;top: 19px;left:10px;background: #fff;transform: rotate(45deg);border-radius: 2px;}
+
+.BodyList .CommitListD .Datecho .sendEx{background: #2a80eb;color: #fff;} /* 기술안보과 이관 */
+.BodyList .CommitListD .Datecho .returnEx{background: #777;color: #fff;padding: 6px 10px 6px 25px;} /* 이관 회수 */
+.BodyList .CommitListD .Datecho .returnEx::before{position: absolute;content: "";width:10px;height:2px;display: block;top: 13px;left:10px;background: #fff;transform: rotate(-45deg);border-radius: 2px;}
+.BodyList .CommitListD .Datecho .returnEx::after{position: absolute;content: "";width:10px;height:2px;display: block;top: 19px;left:10px;background: #fff;transform: rotate(45deg);border-radius: 2px;}
+
+
+
+.dpStatus .dpStatusItem .StatusData .pickDate{flex:1;font-size:18px;color:#222;padding:15px 15px 2px 15px;letter-spacing: -0.5px;}
+.dpStatus .dpStatusItem .StatusData .pickplace{flex:1;font-size:18px;color:#888;padding:0px 15px 2px 15px;}
+.dpStatus .dpStatusItem .StatusData .PickdataBar{position: relative;width:calc(100% - 30px);margin:0 15px 15px 15px;display:block;height:20px;background:#f4f3f3;border-radius: 4px;}
+.dpStatus .dpStatusItem .StatusData .PickdataOnBar{position: absolute;height:100%;left:0;top:0;background: #4d84ff;border-radius: 4px;}
+.dpStatus .dpStatusItem .StatusData .PickdataOnData{position: absolute;height:100%;right:0;top:0;display:inline-block;font-size:15px;text-align:right;padding-right:10px;}
+
+.LayerAlertWarpper {display: block;border-radius: 10px;brder;box-shadow: 0 3px 10px rgb(0 0 0 / 7%);}
+.LayerAlertWarpper .layer_alert_tit {display: block;height: 60px;overflow: hidden;border-radius: 10px 10px 0 0;}
+.LayerAlertWarpper .layer_alert_tit .layer_closer {position: relative;float: right;width: 50px;height: 50px;display: block;margin: 9px 9px 0 0;}
+.LayerAlertWarpper .layer_alert_tit .layer_closer::before {position: absolute;content: "";top: 20px;left: 1px;width: 50px;height: 2px;display: block;background: #222;transform: rotate(-45deg);}
+.LayerAlertWarpper .layer_alert_tit .layer_closer::after {position: absolute;content: "";top: 20px;left: 1px;width: 50px;height: 2px;display: block;background: #222;transform: rotate(45deg);}
+
+.layer_alert_btn{padding:10px 30px 50px 30px ;border-radius: 0 10px 10px 0;text-align:center;}
+.layer_alert_btn .btn{position: relative;display: inline-block;padding: 10px 30px;margin:0 2px;font-size: 20px;font-weight: 200;border-radius: 4px;}
+.layer_alert_btn .alertClose{background: #888;color: #fff;}
+.layer_alert_btn .canEx{background: #2a80eb;color: #fff;}
+
+
+.Layer_Ex_5001 {width: 600px;background: #fff;}
+.LayerAlertWarpper .LayerBodySec{display:block;-webkit-box-sizing: border-box;box-sizing: border-box;background:#fff;}
+.LayerAlertWarpper .LayerBodySec .popMessegeTit{font-size:26px;font-weight:400;text-align:center;padding:40px 0 30px 0;;}
+.LayerAlertWarpper .LayerBodySec .popMessegeTit .sub{font-size:20px;color:#888}
+.LayerAlertWarpper .LayerBodySec .popMessegeCopy{font-size:17px;font-weight:200;color:#9d9d9d;text-align:center;line-height:24px;padding:0 0 40px 0;letter-spacing: -0.5px;}
+.LayerAlertWarpper .LayerBodySec .popMessegebox{padding:15px;background:#f9e0cf;border: 1px solid #FFB27D;border-radius: 8px;margin:0 40px 30px 40px}
+.LayerAlertWarpper .LayerBodySec .colorRed{color:#ff0000;}
+.LayerAlertWarpper .LayerBodySec .colorbold{color:#222;}
+
+.nctConList{}
+.nctConList li{display:flex;margin-bottom:10px;border:1px solid #d7d7d7;border-radius:6px;background:#fff;align-items: center;justify-content: center;}
+.nctConList .listConItem{flex:1;font-size:16px;color:#222;font-wegiht:400;align-items: center;justify-content: center;padding:10px;}
+.nctConList .listConItem.SecNo{max-width: 80px;;font-size:16px;color:#222;font-wegiht:400;text-align:center;}
+.nctConList .listConItem.DateCnt{max-width: 150px;display:flex;font-size:16px;color:#000;font-wegiht:400;text-align:center;}
+.nctConList .listConItem.Status{max-width: 140px;display:flex;font-size:16px;color:#000;font-wegiht:400;text-align:center;}
+
+.nctConList .listConItem.CommitTit{display:flex;align-items: center;justify-content: flex-start;}
+.nctConList .listConItem .CommitTitItem{flex:1}
+.nctConList .rowItem{display:flex;flex-direction: column;}
+.nctConList .label{font-size:15px;color:#888}
+.nctConList .regDate{}
+.nctConList .memIDbox{max-width:200px}
+.nctConList .inviKeybox{max-width:300px}
+
+.nctConList .inviKey{font-size:22px;color:#157efb}
+.nctConList .cpnId{font-size:22px;}
+.nctConList .cpnCeo{font-size:20px;}
+.nctConList .cpnId{font-size:20px;}
+
+.nctConList .Status .ListStatus{width:100%;color:#222;position: relative;display:block;padding:5px 15px 5px 15px;border: 1px solid #d3d3d3;border-radius: 4px;text-align:center}
+.nctConList .Status .ListStatus:before {position: absolute;content: "";top: 10px;left: 10px;display: block;width: 12px;height: 12px;background: #d9d9d9;border-radius: 6px;}
+.nctConList .Status .ComMem200{border-color:#1cbd28;}
+.nctConList .Status .ComMem400{border-color:#ffcb57;}
+.nctConList .Status .ComMem300{border-color:#afafaf;}
+.nctConList .Status .ComMem500{border-color:#ff0000;}
+.nctConList .Status .ComMem200:before{background:#1cbd28;}
+.nctConList .Status .ComMem400:before{background:#ffcb57;}
+.nctConList .Status .ComMem300:before{background:#afafaf;}
+.nctConList .Status .ComMem500:before{background:#ff0000;}
+
+.nctConList .listConItem .CommitTit{display:flex;align-items: center;justify-content: center;}
+.nctConList .listConItem{}
+
+.BodyBottomUtil03 {position: fixed;bottom: 0;left: 0px;text-align: center;width: calc(100% - 17px);height: 70px;border-top: 1px solid #dbdbdb;padding: 0px 50px 0px 50px;background: #fff;
+-webkit-box-sizing: border-box;box-sizing: border-box;z-index: 100;}
+
+
+.ansDataTapBox{border-bottom:1px solid #d7d7d7;}
+.ansDataTapBox .ansDataTapList{display:block}
+.ansDataTapBox .ansDataTapList li{display:inline-block;border-right:1px solid #e7e7e7}
+.ansDataTapBox .ansDataTapList .ansDataTapItem{position: relative;display:inline-block;font-size:17px;padding:9px 10px 8px 25px;color:#888;text-align:left;}
+.ansDataTapBox .ansDataTapList .ansDataTapItem:before{position: absolute;content: "";top: 13px;left: 10px;display: block;width: 12px;height: 12px;background: #d9d9d9;border-radius: 6px;}
+.ansDataTapBox .TapOn .ansDataTapItem{color:#222;}
+.ansDataTapBox .TapOn .ansDataTapItem:before{background: #157efb;}
+
+.BodyList .CommitListD .CommitT .TitleTech{width:200px;}
+.BodyList .CommitListD .CommitT .TitleMemName {width:200px;color: #222;}
+.BodyList .CommitListD .CommitT .TitleMemName .poname{font-size:15px;color:#888;padding-left:5px;}
+
+.nctContentFooter{position: fixed;width:100%;bottom:0px;left:0;border-top:1px solid #d7d7d7;-webkit-box-sizing: border-box;box-sizing: border-box;background: #fff;box-shadow: 3px 4px 0 0 rgb(0 0 0 / 4%);}
+.paginatbox {display:block;background:#fff;height:30px;padding:10px 0 10px 0  ;text-align:center;border-radius: 0 0 6px 6px;}
+.paginatbox li {display: inline-block;overflow:hidden}
+.paginatbox li a {color: black;float: left;width:30px;height:30px;font-size:15px;padding-top:4px;margin:0 3px 0 3px;text-decoration: none;border:1px solid #fff;border-radius: 4px;-webkit-box-sizing: border-box;box-sizing: border-box;}
+.paginatbox li.current a{background-color: #4d84ff;color: #fff;border:1px solid #4d84ff}
+.paginatbox li a:hover:not(.current) {background-color: #fff;color:#4d84ff;border:1px solid #4d84ff}
+

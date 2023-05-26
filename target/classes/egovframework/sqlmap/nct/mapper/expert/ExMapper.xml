@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kaits.nct.ex.mapper.ExMapper">
+	<select id="getExInfoData" parameterType="exInfoDataVO" resultType="exInfoDataVO">
+		/** 전문위원회 > 회차 기본 정보 조회 **/
+		SELECT 
+			inf.COMMITTEE_IDX
+			,inf.COMMITTEE_TECH_ID
+			,kt.TECH_NAME AS COMMITTEE_TECH_NAME
+			,inf.COMMITTEE_YEAR
+			,inf.COMMITTEE_NUM
+			,inf.COMMITTEE_TECH_NUM
+			,inf.COMMITTEE_AGD_CNT
+			,inf.COMMITTEE_AMG03_CNT
+			,inf.COMMITTEE_AMG04_CNT
+			,inf.COMMITTEE_AMG05_CNT
+			,inf.COMMITTEE_AMG06_CNT
+			,inf.COMMITTEE_TYPE
+			,inf.COMMITTEE_DATE_PICK_S
+			, date_format(inf.COMMITTEE_DATE_PICK_S, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_DATE_PICK_S_KO
+			,inf.COMMITTEE_DATE_PICK_E
+			, date_format(inf.COMMITTEE_DATE_PICK_E, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_DATE_PICK_E_KO
+			, <![CDATA[IF(STR_TO_DATE(inf.COMMITTEE_DATE_PICK_S, '%Y%m%d%H%i%s') <= NOW() AND STR_TO_DATE(inf.COMMITTEE_DATE_PICK_E, '%Y%m%d%H%i%s') >= NOW(), 'Y','N') AS DATE_CHECK_YN]]>
+			,inf.COMMITTEE_DATE_PICK_1
+			, date_format(inf.COMMITTEE_DATE_PICK_1, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_DATE_PICK_1_KO
+			,inf.COMMITTEE_DATE_ADD_1
+			,inf.COMMITTEE_DATE_PICK_2
+			, date_format(inf.COMMITTEE_DATE_PICK_2, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_DATE_PICK_2_KO
+			,inf.COMMITTEE_DATE_ADD_2
+			,inf.COMMITTEE_DATE_PICK_3
+			, date_format(inf.COMMITTEE_DATE_PICK_3, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_DATE_PICK_3_KO
+			,inf.COMMITTEE_DATE_ADD_3
+			,inf.COMMITTEE_DATE_PICK
+			, date_format(inf.COMMITTEE_DATE_PICK, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_DATE_PICK_KO
+			,inf.COMMITTEE_MODI_S
+			, date_format(inf.COMMITTEE_MODI_S, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_MODI_S_KO
+			,inf.COMMITTEE_MODI_E
+			, date_format(inf.COMMITTEE_MODI_E, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_MODI_E_KO
+			,inf.COMMITTEE_STATUS
+			,inf.COMMITTEE_CONFIRM_YN
+			,inf.LAST_UPDT
+			, date_format(inf.LAST_UPDT, '%Y년 %m월 %d일 %H시 %i분') as LAST_UPDT_KO
+			,inf.LAST_UPDUSR_ID
+		FROM kaits_ex_commit_info inf
+		LEFT JOIN kaits_tech kt
+			ON kt.TECH_ID = inf.COMMITTEE_TECH_ID
+		WHERE 1=1
+			AND COMMITTEE_IDX = #{committeeIdx}
+	</select>
+	
+	<update id="openProcEx" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 개최  처리  **/
+		UPDATE kaits_ex_commit_info SET 
+			COMMITTEE_STATUS = 'IN'
+		WHERE COMMITTEE_IDX= #{committeeIdx}
+	</update>
+	
+	<update id="updateOpenExAgd" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 개최에 따른 안건 처리  **/
+		UPDATE kaits_agenda_stat SET
+			AGD_STATUS = 'IN'
+		WHERE AGD_EX_IDX = #{committeeIdx}
+	</update>
+	
+	<update id="cancelProcEx" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 개최 취소 처리  **/
+		UPDATE kaits_ex_commit_info SET 
+			COMMITTEE_DATE_PICK = NULL
+			,COMMITTEE_MODI_S = NULL
+			,COMMITTEE_MODI_E = NULL
+			,COMMITTEE_CONFIRM_YN = 'N'
+			,COMMITTEE_STATUS = 'DP'
+		WHERE COMMITTEE_IDX= #{committeeIdx}
+	</update>
+	
+	<delete id="deleteProcEx" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 개최 삭제 처리  **/
+		DELETE FROM kaits_ex_commit_info WHERE COMMITTEE_IDX= #{committeeIdx}
+	</delete>
+	
+	<delete id="deleteProcExMem" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 개최 삭제 > 멤버 처리  **/
+		DELETE FROM kaits_ex_commit_member WHERE COMMITTEE_IDX= #{committeeIdx}
+	</delete>
+	
+	<delete id="deleteProcExOpi" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 개최 삭제 > 작성 의견 처리  **/
+		DELETE FROM kaits_ex_commit_opinion WHERE COMMITTEE_IDX= #{committeeIdx}
+	</delete>
+	
+	<update id="updateProcExAgd" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 삭제에 따른 안건 처리  **/
+		UPDATE kaits_agenda_stat SET
+			AGD_EX_IDX = NULL
+			, AGD_STATUS = 'AS'
+		WHERE AGD_EX_IDX = #{committeeIdx}
+	</update>
+	
+	
+	<update id="backProcEx" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 개최 (진행중) > 개최 회수 처리  **/
+		UPDATE kaits_ex_commit_info SET 
+			COMMITTEE_STATUS = 'RD'
+		WHERE COMMITTEE_IDX= #{committeeIdx}
+	</update>
+	
+	<update id="updateBackExMem" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 개최 (진행중) > 개최 회수 처리에 따른 구성원 처리  **/
+		UPDATE kaits_ex_commit_member SET 
+			COMMITTEE_SIGN_WRITE_YN = 'N'
+			,COMMITTEE_SIGN_WRITE = NULL
+			,COMMITTEE_SIGN_SAVE_YN = 'N'
+			,COMMITTEE_SIGN_SAVE = NULL
+		WHERE COMMITTEE_IDX= #{committeeIdx}
+	</update>
+	
+	<update id="updateBackExOpi" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 개최 (진행중) > 개최 회수 처리에 따른 구성원 처리  **/
+		UPDATE kaits_ex_commit_opinion SET 
+			COMMITTEE_OPT_01 = NULL
+			,COMMITTEE_OPT_02 = NULL
+			,COMMITTEE_OPT_03 = NULL
+			,COMMITTEE_OPT_04 = NULL
+			,COMMITTEE_OPT_05 = NULL
+			,COMMITTEE_OPT_06 = NULL
+			,COMMITTEE_OPT_07 = NULL
+			,COMMITTEE_OPT_08 = NULL
+			,COMMITTEE_OPT_GENERAL = NULL
+			,COMMITTEE_OPT_FLAG = NULL
+			,TECH_ITEM_ID = NULL
+			,COMMITTEE_OPT_STATUS = 'PW'
+		WHERE COMMITTEE_IDX= #{committeeIdx}
+	</update>
+	
+	<update id="updateBackExAgd" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 개최 (진행중) > 개최 회수 처리에 따른 안건 처리  **/
+		UPDATE kaits_agenda_stat SET
+			AGD_STATUS = 'RD'
+		WHERE AGD_EX_IDX = #{committeeIdx}
+	</update>
+	
+	
+	
+	
+	<update id="endProcEx" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 개최 (진행중) > 위원회 종료 처리  **/
+		UPDATE kaits_ex_commit_info SET 
+			COMMITTEE_STATUS = 'EN'
+		WHERE COMMITTEE_IDX= #{committeeIdx}
+	</update>
+	
+	<update id="updateEndExAgd" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 개최 (진행중) > 개최 회수 처리에 따른 안건 처리  **/
+		UPDATE kaits_agenda_stat SET
+			AGD_STATUS = 'EN'
+		WHERE AGD_EX_IDX = #{committeeIdx}
+	</update>
+	
+	<update id="endBackProcEx" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 개최 (진행중) > 위원회 종료 처리  **/
+		UPDATE kaits_ex_commit_info SET 
+			COMMITTEE_STATUS = 'IN'
+		WHERE COMMITTEE_IDX= #{committeeIdx}
+	</update>
+	
+	<update id="updateEndBackExAgd" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 개최 (진행중) > 개최 회수 처리에 따른 안건 처리  **/
+		UPDATE kaits_agenda_stat SET
+			AGD_STATUS = 'IN'
+		WHERE AGD_EX_IDX = #{committeeIdx}
+	</update>
+	
+	<update id="sendProcExdo" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 종료 > 기술안보과 이관  처리  **/
+		UPDATE kaits_ex_commit_info SET 
+			COMMITTEE_STATUS = 'CO'
+		WHERE COMMITTEE_IDX= #{committeeIdx}
+	</update>
+	
+	<update id="updatesendExAgd" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 위원회 종료 > 기술안보과 이관  처리 처리에 따른 안건 처리  **/
+		UPDATE kaits_agenda_stat SET
+			AGD_STATUS = 'CO'
+		WHERE AGD_EX_IDX = #{committeeIdx}
+	</update>
+	
+	<update id="returnProcEx" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 이관 완료  > 이관 회수 처리  **/
+		UPDATE kaits_ex_commit_info SET 
+			COMMITTEE_STATUS = 'EN'
+		WHERE COMMITTEE_IDX= #{committeeIdx}
+	</update>
+	
+	<update id="updatereturnExAgd" parameterType="exInfoDataVO">
+		/** 전문위원회 > 위원회 현황 > 이관 완료  > 이관 회수 처리에 따른 안건 처리  **/
+		UPDATE kaits_agenda_stat SET
+			AGD_STATUS = 'EN'
+		WHERE AGD_EX_IDX = #{committeeIdx}
+	</update>
+	
+	
+	
+	<select id="loadAgendaList" parameterType="exAgdListDataVO" resultType="exAgdListDataVO">
+		/** 전문위원회 > 회차별 왼쪽 안건 리스트 정보 조회 **/
+		SELECT 		
+			agd.AGD_CODE
+			,agd.AGD_VIEW_CODE
+			,met.RCPT_META_CODE
+			,met.RCPT_TYPE_CODE
+			,rct.RCPT_CODE
+			,met.RCPT_COM_CODE
+			,mem.CPN_NM
+			,met.RCTP_RE_YN
+			,met.RCTP_RE_CODE
+			,met.RCPT_TITLE
+			,met.RCPT_TECH_FORM
+			,agd.AGD_TECH_ID
+			,agd.AGD_EX_IDX
+			,agd.AGD_EX_SORT
+			,agd.AGD_STATUS
+			FROM kaits_agenda_stat agd
+			INNER JOIN kaits_meta met 
+				ON met.RCPT_META_CODE = agd.RCPT_META_CODE
+			LEFT JOIN kaits_com_member mem
+				ON mem.CPN_ID = met.RCPT_COM_CODE
+			LEFT JOIN kaits_receipt_stat rct
+				ON rct.RCPT_META_CODE = agd.RCPT_META_CODE
+		WHERE AGD_EX_IDX = #{committeeIdx}
+		ORDER BY agd.AGD_EX_SORT ASC
+	</select>
+	
+	<select id="loadAgendaTitList" parameterType="exAgdListDataVO" resultType="exAgdListDataVO">
+		/** 전문위원회 > 회차별 왼쪽 안건 리스트 정보 조회 **/
+		SELECT 		
+			met.RCPT_META_CODE
+			,met.RCPT_TYPE_CODE
+			,rct.RCPT_CODE
+			,mtc.TECH_UNIQ_ID
+			,tch.TECH_ITEM_MEMO
+			,mtc.TECH_RCPT_TECH_NM
+			FROM kaits_agenda_stat agd
+			INNER JOIN kaits_meta met 
+				ON met.RCPT_META_CODE = agd.RCPT_META_CODE
+			LEFT JOIN kaits_receipt_stat rct
+				ON rct.RCPT_META_CODE = agd.RCPT_META_CODE
+			INNER JOIN kaits_meta_tech mtc
+				ON mtc.RCPT_META_CODE =  agd.RCPT_META_CODE
+			LEFT JOIN kaits_tech_item tch
+				ON tch.TECH_ITEM_ID = mtc.TECH_UNIQ_ID
+		WHERE AGD_EX_IDX = #{committeeIdx}
+		ORDER BY agd.AGD_EX_SORT ASC
+	</select>
+	
+	
+	
+	
+</mapper>

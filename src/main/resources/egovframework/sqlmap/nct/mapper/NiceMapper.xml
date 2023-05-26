@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kaits.nct.common.mapper.NiceMapper">
+	<insert id="insertNiceInfo" parameterType="niceApiVO">
+		INSERT INTO kaits_nice_auth (
+		    NICE_AUTH_TOKEN_VERSION_ID
+		    , NICE_AUTH_KEY
+		    , NICE_AUTH_IV
+		    , NICE_AUTH_HMAC_KEY
+		    , NICE_AUTH_REG_DATE
+		) VALUES (
+		    #{niceAuthTokenVersionId}
+		    , #{niceAuthKey}
+		    , #{niceAuthIv}
+		    , #{niceAuthHmacKey}
+		    , NOW()
+		)
+	</insert>
+	<select id="selectNiceAuth" parameterType="niceApiVO" resultType="niceApiVO">
+		select 
+			kna.NICE_AUTH_TOKEN_VERSION_ID
+			, kna.NICE_AUTH_KEY
+			, kna.NICE_AUTH_IV
+			, kna.NICE_AUTH_HMAC_KEY
+			, kna.NICE_AUTH_NAME
+			, kna.NICE_AUTH_MOBILE_NO
+			, kna.NICE_AUTH_COM_NUM
+			, kna.NICE_AUTH_YN
+			, kna.NICE_AUTH_REG_DATE
+		from kaits_nice_auth kna
+		where kna.NICE_AUTH_TOKEN_VERSION_ID = #{niceAuthTokenVersionId}
+	</select>
+	<update id="updateNiceAuth" parameterType="niceApiVO">
+		update kaits_nice_auth set
+			NICE_AUTH_NAME = #{niceAuthName}
+			, NICE_AUTH_MOBILE_NO = #{niceAuthMobileNo}
+			, NICE_AUTH_YN = 'Y'
+		where NICE_AUTH_TOKEN_VERSION_ID = #{niceAuthTokenVersionId}
+	</update>
+</mapper>

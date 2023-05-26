@@ -1,0 +1,686 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kaits.nct.member.mapper.MemberMapper">
+	<insert id="insertMemHistory" parameterType="memHistoryVO">
+	  	/** 업무 포털 계정 히스토리 insert  **/
+		INSERT INTO kaits_admin_history (
+		    ADM_ID
+		    , ADM_HIS_MENU
+		    , ADM_HIS_CODE
+		    , ADM_HIS_COMMENT
+		    , ADM_HIS_DATE
+		) VALUES (
+		    #{admId}
+		    , #{admHisMenu}
+		    , #{admHisCode}
+		    , #{admHisComment}
+		    , NOW()
+		)
+  	</insert>
+  	
+	<select id="UserCheck" parameterType="memberVO" resultType="memberVO">
+		SELECT 
+			  kam.ADM_ID
+			, kam.ADM_GROUP
+			, kam.ADM_NAME
+			, kam.ADM_PASSWORD
+			, kam.ADM_COM
+			, kam.ADM_DEPT
+			, kam.ADM_POSITON
+			, kam.ADM_ZIP
+			, kam.ADM_ADD1
+			, kam.ADM_ADD2
+			, kam.ADM_PHONE1
+			, kam.ADM_PHONE2
+			, kam.ADM_PHONE3
+			, kam.ADM_FAX1
+			, kam.ADM_FAX2
+			, kam.ADM_FAX3
+			, kam.ADM_MOBILE1
+			, kam.ADM_MOBILE2
+			, kam.ADM_MOBILE3
+			, kam.ADM_EMAIL
+			, kam.ADM_DN_VALUE
+			, kam.ADM_CAR_YEAR
+			, kam.ADM_CAR_NUM
+			, kam.ADM_SAMU
+			, kam.ADM_PRO_YN
+			, kam.ADM_SAVE_YN
+			, kam.ADM_SUB_YN
+			, kam.ADM_INVI_YN
+		    , kam.ADM_INVI_KEY
+			, kam.ADM_STEMP_FILE
+			, kam.ADM_STEMP_ORIGIN
+			, kam.ADM_REG_DATE
+			, date_format(kam.ADM_REG_DATE, '%Y-%m-%d') as ADM_REG_DATE10
+			, kam.ADM_STAT
+			, CASE kam.ADM_STAT WHEN '200' THEN '사용중' WHEN '300' THEN '사용정지' WHEN '400' THEN '승인중' END AS ADM_STAT_NM
+			, kam.ADM_APPROVAL1
+			, kam.ADM_APPROVAL2
+			, kam.ADM_LAST_ACC
+			, (select kaa.ADM_AUTH_TECH from kaits_admin_authority kaa where kaa.ADM_AUTH_ID = kam.ADM_ID LIMIT 1) AS ADM_AUTH_TECH
+		FROM kaits_admin_member kam
+		WHERE 1=1
+		<if test="admId != null">
+			AND kam.ADM_ID = #{admId}
+		</if>
+		<if test="admPassword != null">
+		  	AND kam.ADM_PASSWORD = #{admPassword}
+	  	</if>
+		<if test="admStat != null">
+		  	AND kam.ADM_STAT = #{admStat}
+	  	</if>
+		<if test="admId neq null and admPassword neq null">
+			LIMIT 1
+		</if>
+	</select>
+	<select id="comMemberSelect" resultType="comMemberVO">
+		SELECT 
+			CPN_ID
+			, CPN_PASSWORD
+			, CPN_SE_CODE
+			, CPN_S_NO
+			, CPN_B_NO
+			, CPN_NM
+			, CPN_CEO
+			, CPN_B_ZIP
+			, CPN_B_ADD1
+			, CPN_B_ADD2
+			, CPN_B_PHONE1
+			, CPN_B_PHONE2
+			, CPN_B_PHONE3
+			, CPN_B_FAX1
+			, CPN_B_FAX2
+			, CPN_B_FAX3
+			, CPN_DUTY_CODE
+			, CPN_S_ZIP
+			, CPN_S_ADD1
+			, CPN_S_ADD2
+			, CPN_S_PHONE1
+			, CPN_S_PHONE2
+			, CPN_S_PHONE3
+			, CPN_P_NM
+			, CPN_P_DEPT
+			, CPN_P_POSITION
+			, CPN_P_PHONE1
+			, CPN_P_PHONE2
+			, CPN_P_PHONE3
+			, CPN_P_MOBILE1
+			, CPN_P_MOBILE2
+			, CPN_P_MOBILE3
+			, CPN_P_EMAIL
+			, CPN_ID_KEY
+			, CPN_NO_FILE
+			, CPN_NO_FILE_ORI
+			, CPN_P_FILE
+			, CPN_P_FILE_ORI
+			, CPN_STEMP_FILE
+			, CPN_STEMP_ORIGIN
+			, CPN_REF_DATE
+			, date_format(CPN_REF_DATE, '%Y년 %m월 %d일') as CPN_REF_DATE8_KO
+			, CPN_STAT
+			, CASE CPN_STAT WHEN '200' THEN '사용중' WHEN '400' THEN '승인대기' WHEN '300' THEN '사용정' END AS CPN_STAT_NM
+			, CPN_APPROVAL1
+			, CPN_APPROVAL2
+			, CPN_LAST_ACC
+		FROM kaits_com_member
+		WHERE 1=1
+			AND CPN_LOGIN_YN = 'Y'
+		<if test="cpnId != null">
+			AND CPN_ID = #{cpnId}
+		</if>
+		<if test="cpnStat != null">
+			AND CPN_STAT = #{cpnStat}
+		</if>
+		<if test="cpnNm != null">
+			AND TRIM(CPN_NM)  LIKE CONCAT('%',trim(#{cpnNm}),'%')
+		</if>
+		ORDER BY CPN_STAT='400' DESC, CPN_STAT='200' DESC, CPN_STAT='300' DESC, CPN_REF_DATE DESC, CPN_ID
+	</select>
+  	<select id="getComMemberGroupCount" parameterType="comMemberVO" resultType="memberTabVO">
+		SELECT 
+			CPN_STAT AS TITLE
+			, COUNT(*) AS COUNT
+		FROM kaits_com_member 
+		WHERE 1=1
+			AND CPN_LOGIN_YN = 'Y'
+		GROUP BY CPN_STAT		
+	</select>
+	<select id="getAdminMemberAuth" parameterType="MemberAuthVO" resultType="MemberAuthVO">
+		SELECT
+			ADM_AUTH_ID
+			,ADM_AUTH_TECH
+		FROM kaits_admin_authority
+		WHERE 1=1 
+			AND ADM_AUTH_YN = 'Y'
+			AND ADM_AUTH_ID = #{admAuthId}
+	</select>
+	<select id="admMemberSelect" resultType="memberVO">
+		SELECT 
+			kam.ADM_ID
+			, kam.ADM_GROUP
+			, kam.ADM_NAME
+			, kam.ADM_PASSWORD
+			, kam.ADM_COM
+			, kam.ADM_DEPT
+			, kam.ADM_POSITON
+			, kam.ADM_ZIP
+			, kam.ADM_ADD1
+			, kam.ADM_ADD2
+			, kam.ADM_PHONE1
+			, kam.ADM_PHONE2
+			, kam.ADM_PHONE3
+			, kam.ADM_FAX1
+			, kam.ADM_FAX2
+			, kam.ADM_FAX3
+			, kam.ADM_MOBILE1
+			, kam.ADM_MOBILE2
+			, kam.ADM_MOBILE3
+			, kam.ADM_EMAIL
+			, kam.ADM_DN_VALUE
+			, kam.ADM_CAR_YEAR
+			, kam.ADM_CAR_NUM
+			, kam.ADM_SAMU
+			, kam.ADM_PRO_YN
+			, kam.ADM_SAVE_YN
+			, kam.ADM_SUB_YN
+			, kam.ADM_STEMP_FILE
+			, kam.ADM_STEMP_ORIGIN
+			, kam.ADM_REG_DATE
+			, kam.ADM_STAT
+			, kam.ADM_APPROVAL1
+			, kam.ADM_APPROVAL2
+			, kam.ADM_LAST_ACC
+		FROM kaits_admin_member kam
+		WHERE 1=1
+		<if test="admAuthTech != null">
+			AND kam.ADM_ID IN (
+				SELECT kaa.ADM_AUTH_ID FROM kaits_admin_authority kaa WHERE kaa.ADM_AUTH_TECH = #{admAuthTech}
+			)
+	  	</if>
+  	</select>
+  	<insert id="saveAdminMember" parameterType="memberVO">
+	  	INSERT INTO kaits_admin_member (
+		    ADM_ID
+		    , ADM_GROUP
+		    , ADM_NAME
+		    , ADM_PASSWORD
+		    , ADM_COM
+		    , ADM_DEPT
+		    , ADM_POSITON
+		    , ADM_ZIP
+		    , ADM_ADD1
+		    , ADM_ADD2
+		    , ADM_PHONE1
+		    , ADM_PHONE2
+		    , ADM_PHONE3
+		    , ADM_FAX1
+		    , ADM_FAX2
+		    , ADM_FAX3
+		    , ADM_MOBILE1
+		    , ADM_MOBILE2
+		    , ADM_MOBILE3
+		    , ADM_EMAIL
+		    , ADM_DN_VALUE
+		    ,ADM_CAR_YEAR
+			,ADM_CAR_NUM
+			,ADM_SAMU
+			,ADM_PRO_YN
+			,ADM_SAVE_YN
+			,ADM_SUB_YN
+		    , ADM_INVI_YN
+		    , ADM_INVI_KEY
+		    , ADM_STAT
+		    , ADM_REG_DATE
+		    )
+		VALUES (
+		    #{admId}
+		    , #{admGroup}
+		    , #{admName}
+		    , #{admPassword}
+		    , #{admCom}
+		    , #{admDept}
+		    , #{admPositon}
+		    , #{admZip}
+		    , #{admAdd1}
+		    , #{admAdd2}
+		    , #{admPhone1}
+		    , #{admPhone2}
+		    , #{admPhone3}
+		    , #{admFax1}
+		    , #{admFax2}
+		    , #{admFax3}
+		    , #{admMobile1}
+		    , #{admMobile2}
+		    , #{admMobile3}
+		    , #{admEmail}
+		    , #{admDnValue}
+		    , #{admCarYear}
+		    , #{admCarNum}
+		    , #{admSamu}
+		    , #{admProYn}
+		    , #{admSaveYn}
+		    , #{admSubYn}
+		    , #{admInviYn}
+		    , #{admInviKey}
+		    , #{admStat}
+		    , NOW()
+		)
+  	</insert>
+  	<select id="isExistsUser" resultType="int" parameterType="memberVO">
+  		select COUNT(*) from kaits_admin_member kam where kam.ADM_ID = #{admId}
+  	</select>
+  	<select id="getInvitationSeq" resultType="String">
+  		select FUN_PRIMARY12_SEQ() AS SEQ;
+  	</select>
+  	<insert id="saveAdminInvitation" parameterType="memberInvitationVO">
+	  	INSERT INTO kaits_admin_invitation (
+		    ADM_INVI_ID
+		    , ADM_INVI_GROUP
+		    , ADM_INVI_NAME
+		    , ADM_INVI_MOBILE1
+		    , ADM_INVI_MOBILE2
+		    , ADM_INVI_MOBILE3
+		    , ADM_INVI_EMAIL
+		    , ADM_INVI_CAR_YEAR
+		    , ADM_INVI_CAR_NUM
+		    , ADM_INVI_SAMU
+		    , ADM_INVI_PRO_YN
+		    , ADM_INVI_SAVE_YN
+		    , ADM_INVI_SUB_YN
+		    , ADM_INVI_REG_DATE
+		    , ADM_INVI_STAT
+		)
+		VALUES (
+		      #{admInviId}
+		    , #{admInviGroup}
+		    , #{admInviName}
+		    , #{admInviMobile1}
+		    , #{admInviMobile2}
+		    , #{admInviMobile3}
+		    , #{admInviEmail}
+		    , #{admInviCarYear}
+		    , #{admInviCarNum}
+		    , #{admInviSamu}
+		    , #{admInviProYn}
+		    , #{admInviSaveYn}
+		    , #{admInviSubYn}
+		    , NOW()
+		    , '400'
+		)
+  	</insert>
+  	<insert id="saveAdminAuthority" parameterType="memberAuthorityVO">
+	  	INSERT INTO kaits_admin_authority (
+		    ADM_AUTH_ID
+		    , ADM_AUTH_TECH
+		    , ADM_AUTH_REG_DATE
+		)
+		VALUES (
+		    #{admId}
+		    , #{techId}
+		    , NOW()
+		)
+  	</insert>
+  	<select id="getAdminInvitation" parameterType="memberInvitationVO" resultType="memberInvitationVO">
+		select 
+			kai.ADM_INVI_ID
+			, kai.ADM_INVI_GROUP
+			, kai.ADM_INVI_NAME
+			, kai.ADM_INVI_MOBILE1
+			, kai.ADM_INVI_MOBILE2
+			, kai.ADM_INVI_MOBILE3
+			, kai.ADM_INVI_EMAIL
+			, kai.ADM_INVI_CAR_YEAR
+			, kai.ADM_INVI_CAR_NUM
+			, kai.ADM_INVI_SAMU
+			, kai.ADM_INVI_PRO_YN
+			, kai.ADM_INVI_SAVE_YN
+			, kai.ADM_INVI_SUB_YN
+			, kai.ADM_INVI_REG_DATE
+			, date_format(kai.ADM_INVI_REG_DATE, '%Y-%m-%d') as ADM_INVI_REG_DATE10
+			, kai.ADM_INVI_STAT
+			, CASE kai.ADM_INVI_STAT WHEN '200' THEN '가입완료' WHEN '400' THEN '가입전' END AS ADM_INVI_STAT_NM
+		from kaits_admin_invitation kai 
+		where 1=1
+		<if test="admInviStat != null">
+			and kai.ADM_INVI_STAT = #{admInviStat}
+		</if>
+		order by kai.ADM_INVI_ID DESC
+
+	</select>
+	
+  	<select id="getAdminInvitationGroupCount" parameterType="memberInvitationVO" resultType="memberTabVO">
+		select 
+			kai.ADM_INVI_STAT AS TITLE
+			, count(*) as COUNT
+		from kaits_admin_invitation kai 
+		where 1=1
+		group by kai.ADM_INVI_STAT		
+	</select>
+	<select id="getAdminInviChk" resultType="MemberInvitationVO" parameterType="MemberInvitationVO">
+  		SELECT 
+			invi.ADM_INVI_ID
+			,invi.ADM_INVI_GROUP
+			,invi.ADM_INVI_NAME
+			,invi.ADM_INVI_MOBILE1
+			,invi.ADM_INVI_MOBILE2
+			,invi.ADM_INVI_MOBILE3
+			,invi.ADM_INVI_EMAIL
+			,invi.ADM_INVI_CAR_YEAR
+			,invi.ADM_INVI_CAR_NUM
+			,invi.ADM_INVI_SAMU
+			,invi.ADM_INVI_PRO_YN
+			,invi.ADM_INVI_SAVE_YN
+			,invi.ADM_INVI_SUB_YN
+			,invi.ADM_INVI_REG_DATE
+			,invi.ADM_INVI_STAT
+		FROM kaits_admin_invitation invi
+		WHERE 1=1
+			AND invi.ADM_INVI_ID = #{admInviId}
+  	</select>
+	<select id="getAdminMembers" parameterType="memberVO" resultType="memberVO">
+		SELECT 
+			  kam.ADM_ID
+			, kam.ADM_GROUP
+			, kam.ADM_NAME
+			, kam.ADM_PASSWORD
+			, kam.ADM_COM
+			, kam.ADM_DEPT
+			, kam.ADM_POSITON
+			, kam.ADM_ZIP
+			, kam.ADM_ADD1
+			, kam.ADM_ADD2
+			, kam.ADM_PHONE1
+			, kam.ADM_PHONE2
+			, kam.ADM_PHONE3
+			, kam.ADM_FAX1
+			, kam.ADM_FAX2
+			, kam.ADM_FAX3
+			, kam.ADM_MOBILE1
+			, kam.ADM_MOBILE2
+			, kam.ADM_MOBILE3
+			, kam.ADM_EMAIL
+			, kam.ADM_DN_VALUE
+			, kam.ADM_CAR_YEAR
+			, kam.ADM_CAR_NUM
+			, kam.ADM_SAMU
+			, kam.ADM_PRO_YN
+			, kam.ADM_SAVE_YN
+			, kam.ADM_SUB_YN
+			, kam.ADM_INVI_YN
+			, kam.ADM_INVI_KEY
+			, kam.ADM_STEMP_FILE
+			, kam.ADM_STEMP_ORIGIN
+			, kam.ADM_REG_DATE
+			, date_format(kam.ADM_REG_DATE, '%Y-%m-%d') as ADM_REG_DATE10
+			, kam.ADM_STAT
+			, CASE kam.ADM_STAT WHEN '200' THEN '사용중' WHEN '300' THEN '사용정지' WHEN '400' THEN '승인중' END AS ADM_STAT_NM
+			, kam.ADM_APPROVAL1
+			, kam.ADM_APPROVAL2
+			, kam.ADM_LAST_ACC
+			, (select kaa.ADM_AUTH_TECH from kaits_admin_authority kaa where kaa.ADM_AUTH_ID = kam.ADM_ID LIMIT 1) AS ADM_AUTH_TECH
+		FROM kaits_admin_member kam
+		WHERE 1=1
+		<if test="admStat != null">
+		  	AND kam.ADM_STAT = #{admStat}
+	  	</if>
+	  	ORDER BY kam.ADM_STAT='400' DESC, kam.ADM_STAT='200' DESC, kam.ADM_STAT='300' DESC, kam.ADM_REG_DATE DESC, kam.ADM_ID
+	</select>
+  	<select id="getAdminMemberGroupCount" parameterType="memberVO" resultType="memberTabVO">
+		select 
+			kam.ADM_STAT AS TITLE
+			, count(*) as COUNT
+		FROM kaits_admin_member kam
+		where 1=1
+		group by kam.ADM_STAT		
+	</select>
+	<update id="setAdminMember" parameterType="memberVO">
+		update kaits_admin_member set
+			ADM_GROUP = #{admGroup}
+			, ADM_PRO_YN  = #{ admProYn }
+			, ADM_SAVE_YN = #{ admSaveYn }
+			, ADM_SUB_YN  = #{ admSubYn }
+			, ADM_STAT    = '200'
+			, ADM_APPROVAL1 = NOW()
+		where ADM_ID = #{ admId }
+	</update>
+	<update id="inviFlagUpdate" >
+		/** 초대키 회원가입 완료 플래그 업데이트   **/
+		update kaits_admin_invitation set
+			ADM_INVI_STAT = '200'
+		where ADM_INVI_ID = #{ admInviKey }
+	</update>
+	<update id="inviAuthUpdate" >
+		/** 초대키 권한 > 아이디 업데이트  **/
+		update kaits_admin_authority set
+			ADM_AUTH_ID = #{ admId }
+		where ADM_AUTH_ID = #{ admInviKey }
+	</update>
+	<delete id="deleteAdminAuthority" parameterType="memberVO">
+		/** 현황 실태조사 > 임시 저장 전 삭제  **/
+		DELETE FROM kaits_admin_authority
+		WHERE  ADM_AUTH_ID = #{ admId }
+	</delete>
+  	<insert id="saveOtpAuth" parameterType="memberVO">
+	  	INSERT INTO kaits_otp_auth (
+		    OTP_CODE
+		    , ADM_ID
+		    , OTP_DATE
+		)
+		VALUES (
+		      #{admOtpNumber}
+		    , #{admId}
+		    , NOW()
+		)
+  	</insert>
+  	<select id="getOtpAuth" parameterType="memberVO" resultType="otpVO">
+		select 
+			OTP_IDX
+			, OTP_CODE
+			, ADM_ID
+			, OTP_DATE
+		from kaits_otp_auth
+		where ADM_ID = #{admId}
+		order by OTP_IDX desc
+		limit 1
+	</select>
+		<select id="getComInvitationSeq" resultType="String">
+  		select FUN_PRIMARY12_SEQ() AS SEQ;
+  	</select>
+  	<insert id="setComInvitation" parameterType="memberInvitationVO">
+	  	INSERT INTO kaits_holdtech_invitation (
+		    ADM_INVI_ID
+		    , ADM_INVI_GROUP
+		    , ADM_INVI_NAME
+		    , ADM_INVI_MOBILE1
+		    , ADM_INVI_MOBILE2
+		    , ADM_INVI_MOBILE3
+		    , ADM_INVI_EMAIL
+		    , ADM_INVI_CAR_YEAR
+		    , ADM_INVI_CAR_NUM
+		    , ADM_INVI_SAMU
+		    , ADM_INVI_PRO_YN
+		    , ADM_INVI_SAVE_YN
+		    , ADM_INVI_SUB_YN
+		    , ADM_INVI_REG_DATE
+		    , ADM_INVI_STAT
+		)
+		VALUES (
+		      #{admInviId}
+		    , #{admInviGroup}
+		    , #{admInviName}
+		    , #{admInviMobile1}
+		    , #{admInviMobile2}
+		    , #{admInviMobile3}
+		    , #{admInviEmail}
+		    , #{admInviCarYear}
+		    , #{admInviCarNum}
+		    , #{admInviSamu}
+		    , #{admInviProYn}
+		    , #{admInviSaveYn}
+		    , #{admInviSubYn}
+		    , NOW()
+		    , '400'
+		)
+  	</insert>
+  	<select id="getComInvitation" parameterType="memberInvitationVO" resultType="memberInvitationVO">
+		select 
+			kai.ADM_INVI_ID
+			, kai.ADM_INVI_GROUP
+			, kai.ADM_INVI_NAME
+			, kai.ADM_INVI_MOBILE1
+			, kai.ADM_INVI_MOBILE2
+			, kai.ADM_INVI_MOBILE3
+			, kai.ADM_INVI_EMAIL
+			, kai.ADM_INVI_CAR_YEAR
+			, kai.ADM_INVI_CAR_NUM
+			, kai.ADM_INVI_SAMU
+			, kai.ADM_INVI_PRO_YN
+			, kai.ADM_INVI_SAVE_YN
+			, kai.ADM_INVI_SUB_YN
+			, kai.ADM_INVI_REG_DATE
+			, date_format(kai.ADM_INVI_REG_DATE, '%Y-%m-%d') as ADM_INVI_REG_DATE10
+			, kai.ADM_INVI_STAT
+			, CASE kai.ADM_INVI_STAT WHEN '200' THEN '가입완료' WHEN '400' THEN '가입전' END AS ADM_INVI_STAT_NM
+		from kaits_holdtech_invitation kai 
+		where 1=1
+		<if test="admInviStat != null">
+			and kai.ADM_INVI_STAT = #{admInviStat}
+		</if>
+		order by kai.ADM_INVI_ID DESC
+
+	</select>
+	
+  	<select id="getComInvitationGroupCount" parameterType="memberInvitationVO" resultType="memberTabVO">
+		select 
+			kai.ADM_INVI_STAT AS TITLE
+			, count(*) as COUNT
+		from kaits_holdtech_invitation kai 
+		where 1=1
+		group by kai.ADM_INVI_STAT		
+	</select>
+	<select id="getComInviChk" resultType="MemberInvitationVO" parameterType="MemberInvitationVO">
+  		SELECT 
+			invi.ADM_INVI_ID
+			,invi.ADM_INVI_GROUP
+			,invi.ADM_INVI_NAME
+			,invi.ADM_INVI_MOBILE1
+			,invi.ADM_INVI_MOBILE2
+			,invi.ADM_INVI_MOBILE3
+			,invi.ADM_INVI_EMAIL
+			,invi.ADM_INVI_CAR_YEAR
+			,invi.ADM_INVI_CAR_NUM
+			,invi.ADM_INVI_SAMU
+			,invi.ADM_INVI_PRO_YN
+			,invi.ADM_INVI_SAVE_YN
+			,invi.ADM_INVI_SUB_YN
+			,invi.ADM_INVI_REG_DATE
+			,invi.ADM_INVI_STAT
+		FROM kaits_holdtech_invitation invi
+		WHERE 1=1
+			AND invi.ADM_INVI_ID = #{admInviId}
+  	</select>
+  	<select id="ComMember" parameterType="comMemberVO" resultType="comMemberVO">
+		SELECT 
+			CPN_ID
+			, CPN_PASSWORD
+			, CPN_SE_CODE
+			, CPN_S_NO
+			, CPN_B_NO
+			, CPN_NM
+			, CPN_CEO
+			, CPN_B_ZIP
+			, CPN_B_ADD1
+			, CPN_B_ADD2
+			, CPN_B_PHONE1
+			, CPN_B_PHONE2
+			, CPN_B_PHONE3
+			, CPN_B_FAX1
+			, CPN_B_FAX2
+			, CPN_B_FAX3
+			, CPN_DUTY_CODE
+			, CPN_S_ZIP
+			, CPN_S_ADD1
+			, CPN_S_ADD2
+			, CPN_S_PHONE1
+			, CPN_S_PHONE2
+			, CPN_S_PHONE3
+			, CPN_P_NM
+			, CPN_P_DEPT
+			, CPN_P_POSITION
+			, CPN_P_PHONE1
+			, CPN_P_PHONE2
+			, CPN_P_PHONE3
+			, CPN_P_MOBILE1
+			, CPN_P_MOBILE2
+			, CPN_P_MOBILE3
+			, CPN_P_EMAIL
+			, CPN_ID_KEY
+			, CPN_NO_FILE
+			, CPN_NO_FILE_ORI
+			, CPN_P_FILE
+			, CPN_P_FILE_ORI
+			, CPN_STEMP_FILE
+			, CPN_STEMP_ORIGIN
+			, CPN_REF_DATE
+			, date_format(CPN_REF_DATE, '%Y년 %m월 %d일') as CPN_REF_DATE8_KO
+			, CPN_STAT
+			, CASE CPN_STAT WHEN '200' THEN '사용중' WHEN '400' THEN '승인대기' WHEN '300' THEN '사용정' END AS CPN_STAT_NM
+			, CPN_APPROVAL1
+			, CPN_APPROVAL2
+			, CPN_LAST_ACC
+		FROM kaits_com_member
+		WHERE 1=1
+		<if test="cpnId != null">
+			AND CPN_ID = #{cpnId}
+		</if>
+		<if test="cpnStat != null">
+			AND CPN_STAT = #{cpnStat}
+		</if>
+		<if test="cpnNm != null">
+			AND TRIM(CPN_NM)  LIKE CONCAT('%',trim(#{cpnNm}),'%')
+		</if>
+		ORDER BY CPN_STAT='400' DESC, CPN_STAT='200' DESC, CPN_STAT='300' DESC, CPN_REF_DATE DESC, CPN_ID
+	</select>
+	<select id="EndFileCheck" parameterType="EndFileVO" resultType="EndFileVO">
+		/** 메인 공문 체크 - MEM0003 **/
+		SELECT 
+			idx.FILE_IDX
+			,idx.FILE_CODE
+			,idx.FILE_DEPTH
+			,idx.FILE_TYPE
+			,idx.FILE_SORT
+			,idx.FILE_AGD_IDX
+			,idx.FILE_VIEW
+			,idx.FILE_REG_ID
+			,mst.FILE_NM
+			,mst.FILE_ORIGIN_NM
+			,mst.FILE_PATH
+			,mst.FILE_SIZE
+			,mst.FILE_KEY
+		FROM kaits_file_idx idx
+		LEFT JOIN kaits_file_mst mst 
+			ON mst.FILE_CODE = idx.FILE_CODE
+		WHERE 1=1 
+			AND idx.FILE_REG_ID = #{fileRegId}
+			AND idx.FILE_DEPTH = 'F'
+			AND idx.FILE_TYPE = 'M001'
+		ORDER BY idx.FILE_REG_DATE DESC
+		LIMIT 1
+	</select>
+	<update id="comapply" parameterType="ComMemberVO">
+		update kaits_com_member set
+		CPN_STAT = #{cpnStat}
+		where CPN_ID = #{ cpnId }
+	</update>
+	<select id="totComMemberList" resultType="comMemberVO">
+	SELECT 
+	CPN_STAT,   
+	count(CPN_STAT) as cnt 
+	FROM 
+	kaits_com_member 
+	group by CPN_STAT
+	</select>
+	
+	
+</mapper>

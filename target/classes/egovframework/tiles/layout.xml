@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+<tiles-definitions>
+    <!-- Default -->
+    <definition name="DefaultTemplate" template="/WEB-INF/tiles/layout.jsp">
+        <put-attribute name="script" value="/WEB-INF/tiles/script.jsp" />
+        <put-attribute name="css" value="/WEB-INF/tiles/css.jsp" />
+        <put-attribute name="header" value="/WEB-INF/tiles/header_use.jsp" />
+<!--         <put-attribute name="footer" value="/WEB-INF/tiles/footer.jsp" /> -->
+    </definition>
+    
+    <definition name="ExTemplate" template="/WEB-INF/tiles/exlayout.jsp">
+    	<!-- 전문위원회 > 헤더  -->
+    	<put-attribute name="header" value="/WEB-INF/tiles/expcom_header.jsp" />
+    	<put-attribute name="script" value="/WEB-INF/tiles/exscript.jsp" />
+    	<put-attribute name="css"    value="/WEB-INF/tiles/excss.jsp" />
+    	
+    
+    </definition>
+    
+    <definition name="ExpTemplate" template="/WEB-INF/tiles/exlayout.jsp">
+    	<!-- 전문위원회 > 헤더  -->
+    	<put-attribute name="header" value="/WEB-INF/tiles/expcom_header.jsp" />
+    	<put-attribute name="script" value="/WEB-INF/tiles/exscript.jsp" />
+    	<put-attribute name="css"    value="/WEB-INF/tiles/excss.jsp" />
+    	
+    
+    </definition>
+    
+    <definition name="ErrorTemplate" template="/WEB-INF/tiles/exlayout.jsp">
+    	<!-- 에퍼 페이지  -->
+    	<put-attribute name="header" value="/WEB-INF/tiles/expcom_header.jsp" />
+    	<put-attribute name="script" value="/WEB-INF/tiles/exscript.jsp" />
+    	<put-attribute name="css"    value="/WEB-INF/tiles/excss.jsp" />
+    	
+    
+    </definition>
+    
+    <definition name="MypageTemplate" template="/WEB-INF/tiles/exlayout.jsp">
+        <put-attribute name="script" value="/WEB-INF/tiles/script.jsp" />
+        <put-attribute name="css" value="/WEB-INF/tiles/css.jsp" />
+         <put-attribute name="header" value="/WEB-INF/tiles/header_use.jsp" />
+    </definition>
+    
+   <!-- Member -->
+    <definition name="MemberTemplate" template="/WEB-INF/tiles/layout_no_header.jsp">
+        <put-attribute name="script" value="/WEB-INF/tiles/script.jsp" />
+        <put-attribute name="css" value="/WEB-INF/tiles/css.jsp" />
+<!--         <put-attribute name="header" value="/WEB-INF/tiles/header_com.jsp" /> -->
+<!--         <put-attribute name="footer" value="/WEB-INF/tiles/footer_com.jsp" /> -->
+    </definition>
+    
+    <!-- research -->
+    <definition name="ResearchTemplate" template="/WEB-INF/tiles/layout_re_header.jsp">
+        <put-attribute name="script" value="/WEB-INF/tiles/script.jsp" />
+        <put-attribute name="css" value="/WEB-INF/tiles/css.jsp" />
+<!--         <put-attribute name="header" value="/WEB-INF/tiles/header_com.jsp" /> -->
+<!--         <put-attribute name="footer" value="/WEB-INF/tiles/footer_com.jsp" /> MypageTemplate-->
+    </definition>
+
+    <!-- Main -->
+    <definition name="MainTemplate" template="/WEB-INF/tiles/main_layout.jsp">
+        <put-attribute name="header" value="/WEB-INF/tiles/inc/main_header.jsp" />
+        <put-attribute name="gnb" value="/WEB-INF/tiles/inc/gnb.jsp" />
+        <put-attribute name="footer" value="/WEB-INF/tiles/inc/main_footer.jsp" />
+    </definition>
+    
+   <definition name="PolicyTemplate" template="/WEB-INF/tiles/layout.jsp">
+        <put-attribute name="script" value="/WEB-INF/tiles/script.jsp" />
+        <put-attribute name="css" value="/WEB-INF/tiles/css.jsp" />
+         <put-attribute name="header" value="/WEB-INF/tiles/header_use.jsp" />
+    </definition>
+    
+    <definition name="BoardTemplate" template="/WEB-INF/tiles/layout.jsp">
+        <put-attribute name="script" value="/WEB-INF/tiles/script.jsp" />
+        <put-attribute name="css" value="/WEB-INF/tiles/css.jsp" />
+         <put-attribute name="header" value="/WEB-INF/tiles/header_use.jsp" />
+    </definition>
+    
+    
+</tiles-definitions>

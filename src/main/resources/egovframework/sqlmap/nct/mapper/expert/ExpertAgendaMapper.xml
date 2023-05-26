@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kaits.nct.expert.mapper.ExpertAgendaMapper">
+	
+	<select id="getAgendaStatList" parameterType="expertAgendaStatVO" resultType="expertAgendaStatVO">
+		/**
+		 * 안건 현황 대이터 조회
+		 * - 접수완료 데이터(접수현황 테이블 데이터) + 안건 데이터(안건현황 테블 데터)
+		 * ExpertAgendaMapper > getAgendaList
+		 * */
+		<if test="agdExIdx == null and agdCode == null and (agdStatus == null or agdStatus == 'RC')">
+		SELECT 
+			'0' AS SORT_TYPE
+			, krs.RCPT_CODE
+			, NULL AS AGD_CODE
+			, NULL AS AGD_VIEW_CODE
+			, NULL AS AGD_TECH_ID
+			, NULL AS AGD_EX_IDX
+			, krs.RCPT_STATUS AS  AGD_STATUS
+			, FUN_GET_RCPT_STATUS_NAME(krs.RCPT_STATUS) AS AGD_STATUS_NAME
+			, krs.RCPT_STATUS_CODE
+			, krs.RCPT_STATUS_LAST AS AGD_STATUS_LAST
+			, DATE_FORMAT(krs.RCPT_STATUS_LAST, '%Y-%m-%d') as AGD_STATUS_LAST_STR
+			, krs.RCPT_REG_ID AS AGD_REG_ID
+			, krs.RCPT_REG_DATE AS AGD_REG_DATE
+			, DATE_FORMAT(krs.RCPT_REG_DATE, '%Y년 %m월 %d일 %k:%i:%s') as AGD_REG_DATE_STR
+			, km.RCPT_META_CODE
+			, km.RCPT_TYPE_CODE
+			, FUN_GET_RCPT_TYPE_NAME(km.RCPT_TYPE_CODE) as RCPT_TYPE_CODE_NAME
+			, km.RCPT_COM_CODE
+			, km.RCTP_RE_YN
+			, km.RCTP_RE_CODE
+			, km.RCPT_TECH_FORM
+			, km.RCPT_EX_REASON_SALE
+			, km.RCPT_EX_REASON_S_COM
+			, km.RCPT_EX_REASON_TRANS
+			, km.RCPT_EX_REASON_T_COM
+			, km.RCPT_EX_REASON_ETC
+			, km.RCPT_EX_REASON_E_COM
+			, km.RCPT_EX_DATE
+			, km.RCPT_TECH_QUA
+			, km.RCPT_REASON
+			, km.RCPT_LAW01
+			, km.RCPT_LAW02
+			, km.RCPT_LAW03
+			, kcm.CPN_S_NO
+			, kcm.CPN_B_NO
+			, kcm.CPN_NM
+			, kcm.CPN_CEO
+			, kcm.CPN_B_ZIP
+			, kcm.CPN_B_ADD1
+			, kcm.CPN_B_ADD2
+			, kcm.CPN_B_PHONE1
+			, kcm.CPN_B_PHONE2
+			, kcm.CPN_B_PHONE3
+			, kcm.CPN_B_FAX1
+			, kcm.CPN_B_FAX2
+			, kcm.CPN_B_FAX3
+			, kcm.CPN_DUTY_CODE
+			, kcm.CPN_S_ZIP
+			, kcm.CPN_S_ADD1
+			, kcm.CPN_S_ADD2
+			, kcm.CPN_S_PHONE1
+			, kcm.CPN_S_PHONE2
+			, kcm.CPN_S_PHONE3
+			, kcm.CPN_P_NM
+			, kcm.CPN_P_DEPT
+			, kcm.CPN_P_POSITION
+			, kcm.CPN_P_PHONE1
+			, kcm.CPN_P_PHONE2
+			, kcm.CPN_P_PHONE3
+			, kcm.CPN_P_MOBILE1
+			, kcm.CPN_P_MOBILE2
+			, kcm.CPN_P_MOBILE3
+			, kcm.CPN_P_EMAIL
+			, kt.TECH_NAME 
+			, kti.TECH_ITEM_NAME 
+			, kmt.TECH_RCPT_TECH_NM 
+		FROM kaits_receipt_stat krs
+		INNER JOIN kaits_meta km
+			ON km.RCPT_META_CODE = krs.RCPT_META_CODE
+		LEFT JOIN kaits_com_member kcm
+			ON kcm.CPN_ID = km.RCPT_COM_CODE
+		inner join kaits_meta_tech kmt
+			on kmt.RCPT_META_CODE = km.RCPT_META_CODE 
+			and kmt.TECH_RCPT_NUM_SEQ = 1
+		inner join kaits_tech kt 
+			on kt.TECH_ID = kmt.TECH_NCT_CODE
+		inner join kaits_tech_item kti 
+			on kti.TECH_NTC_GID = kmt.TECH_NTC_GID
+			and kti.TECH_ID = kmt.TECH_NCT_CODE
+			and kti.TECH_ITEM_ID = kmt.TECH_UNIQ_ID
+		WHERE krs.RCPT_STATUS = 'RC' AND krs.RCPT_AGENDA_CNT = 0
+		<if test="admGroup == 'AMG04'">
+			and krs.RCPT_A_VIEW='Y' and krs.RCPT_VIEW='Y' and krs.RCPT_STATUS != 'TS'
+			and krs.RCPT_CODE IN (
+				select distinct krc.RCPT_IDX 
+				from kaits_admin_authority kaa
+				inner join kaits_receipt_competence krc 
+					on krc.COM_RCPT_COM_TECH = kaa.ADM_AUTH_TECH 
+				where 1=1
+				and kaa.ADM_AUTH_ID = #{admId}
+			)
+		</if>
+		UNION ALL
+		</if>
+		SELECT 
+			'1' AS SORT_TYPE
+			, krs.RCPT_CODE
+			, kas.AGD_CODE
+			, kas.AGD_VIEW_CODE
+			, kas.AGD_TECH_ID
+			, kas.AGD_EX_IDX
+			, kas.AGD_STATUS
+			, FUN_GET_AGENDA_STATUS_NAME(kas.AGD_STATUS) AS AGD_STATUS_NAME
+			, kas.AGD_STATUS_CODE
+			, kas.AGD_STATUS_LAST
+			, DATE_FORMAT(kas.AGD_STATUS_LAST, '%Y-%m-%d') as AGD_STATUS_LAST_STR
+			, kas.AGD_REG_ID
+			, kas.AGD_REG_DATE
+			, DATE_FORMAT(kas.AGD_REG_DATE, '%Y년 %m월 %d일 %k:%i:%s') as AGD_REG_DATE_STR
+			, km.RCPT_META_CODE
+			, km.RCPT_TYPE_CODE
+			, FUN_GET_RCPT_TYPE_NAME(km.RCPT_TYPE_CODE) as RCPT_TYPE_CODE_NAME
+			, km.RCPT_COM_CODE
+			, km.RCTP_RE_YN
+			, km.RCTP_RE_CODE
+			, km.RCPT_TECH_FORM
+			, km.RCPT_EX_REASON_SALE
+			, km.RCPT_EX_REASON_S_COM
+			, km.RCPT_EX_REASON_TRANS
+			, km.RCPT_EX_REASON_T_COM
+			, km.RCPT_EX_REASON_ETC
+			, km.RCPT_EX_REASON_E_COM
+			, km.RCPT_EX_DATE
+			, km.RCPT_TECH_QUA
+			, km.RCPT_REASON
+			, km.RCPT_LAW01
+			, km.RCPT_LAW02
+			, km.RCPT_LAW03
+			, kcm.CPN_S_NO
+			, kcm.CPN_B_NO
+			, kcm.CPN_NM
+			, kcm.CPN_CEO
+			, kcm.CPN_B_ZIP
+			, kcm.CPN_B_ADD1
+			, kcm.CPN_B_ADD2
+			, kcm.CPN_B_PHONE1
+			, kcm.CPN_B_PHONE2
+			, kcm.CPN_B_PHONE3
+			, kcm.CPN_B_FAX1
+			, kcm.CPN_B_FAX2
+			, kcm.CPN_B_FAX3
+			, kcm.CPN_DUTY_CODE
+			, kcm.CPN_S_ZIP
+			, kcm.CPN_S_ADD1
+			, kcm.CPN_S_ADD2
+			, kcm.CPN_S_PHONE1
+			, kcm.CPN_S_PHONE2
+			, kcm.CPN_S_PHONE3
+			, kcm.CPN_P_NM
+			, kcm.CPN_P_DEPT
+			, kcm.CPN_P_POSITION
+			, kcm.CPN_P_PHONE1
+			, kcm.CPN_P_PHONE2
+			, kcm.CPN_P_PHONE3
+			, kcm.CPN_P_MOBILE1
+			, kcm.CPN_P_MOBILE2
+			, kcm.CPN_P_MOBILE3
+			, kcm.CPN_P_EMAIL
+			, kt.TECH_NAME 
+			, kti.TECH_ITEM_NAME 
+			, kmt.TECH_RCPT_TECH_NM 
+			<if test="admId neq null and finalOpinionYn neq null">
+			, ( SELECT IFNULL(MAX(COMMITTEE_OPT_STATUS ),'NO')
+				FROM kaits_ex_commit_opinion 
+				WHERE COMMITTEE_ADM_ID = #{admId}
+					AND AGD_CODE = kas.AGD_CODE 
+					AND COMMITTEE_IDX = kas.AGD_EX_IDX
+				) AS AGD_EX_STATUS
+			</if>
+		FROM kaits_agenda_stat kas
+		INNER JOIN kaits_meta km
+			ON km.RCPT_META_CODE = kas.RCPT_META_CODE
+		INNER JOIN kaits_receipt_stat krs
+			ON krs.RCPT_META_CODE = km.RCPT_META_CODE
+		LEFT JOIN kaits_com_member kcm
+			ON kcm.CPN_ID = km.RCPT_COM_CODE
+		inner join kaits_meta_tech kmt
+			on kmt.RCPT_META_CODE = km.RCPT_META_CODE 
+			and kmt.TECH_RCPT_NUM_SEQ = 1
+		inner join kaits_tech kt 
+			on kt.TECH_ID = kas.AGD_TECH_ID
+		inner join kaits_tech_item kti 
+			on kti.TECH_NTC_GID = kmt.TECH_NTC_GID
+			and kti.TECH_ID = kmt.TECH_NCT_CODE
+			and kti.TECH_ITEM_ID = kmt.TECH_UNIQ_ID
+		WHERE 1=1
+		<if test="agdStatus != null">
+			and kas.AGD_STATUS = #{agdStatus}
+		</if>
+		<if test="agdExIdx != null">
+			and kas.AGD_EX_IDX = #{agdExIdx}
+		</if>
+		<if test="agdTechId != null">
+			<!-- 전문위원회 구성 안건 -->
+			and kas.AGD_EX_IDX IS NULL
+			and kas.AGD_TECH_ID = #{agdTechId}
+		</if>
+		<if test="admGroup == 'AMG04'">
+			and kas.AGD_TECH_ID IN (
+				select kaa.ADM_AUTH_TECH
+				from kaits_admin_authority kaa
+				where 1=1
+					and kaa.ADM_AUTH_ID = #{admId}
+			)
+			
+		</if>
+		<if test="agdCode != null">
+			and kas.AGD_CODE = #{agdCode}
+		</if>
+		<if test="agdExIdx != null">
+			ORDER BY AGD_EX_SORT
+		</if>
+		<if test="agdExIdx == null">
+			ORDER BY SORT_TYPE
+				, AGD_STATUS = 'CR' DESC
+				, AGD_STATUS = 'CC' DESC
+				, AGD_STATUS = 'CI' DESC
+				, AGD_STATUS = 'CE' DESC
+				, AGD_STATUS = 'AS' DESC
+				, AGD_STATUS = 'CS' DESC
+				, AGD_VIEW_CODE DESC
+		</if>
+	</select>	
+	<select id="getAgendaStatListGroupCount" parameterType="expertAgendaStatVO" resultType="expertTabVO">
+	/**
+	 * 안건 상태 별 데이터 개수 조회
+	 * ExpertAgendaMapper > getAgendaListGroupCount
+	 */
+	select tb_union_rc_agd.AGD_STATUS as 'TITLE', count(*) as 'COUNT' 
+	from ( 
+		/* 1. 접수 완료 데이터 조회 */
+		select krs.RCPT_STATUS as AGD_STATUS
+		from kaits_receipt_stat krs
+		where 1=1
+		and krs.RCPT_STATUS = 'RC' AND krs.RCPT_AGENDA_CNT = 0
+		union all
+		/* 2. 안건 현황 데이터 조회 */
+		select kas.AGD_STATUS
+		from kaits_agenda_stat kas
+		where 1=1 
+		<if test="admGroup == 'AMG04'">
+			and kas.AGD_TECH_ID IN (
+				select kaa.ADM_AUTH_TECH
+				from kaits_admin_authority kaa
+				where 1=1
+					and kaa.ADM_AUTH_ID = #{admId}
+			)
+			
+		</if>
+		) tb_union_rc_agd
+	group by tb_union_rc_agd.AGD_STATUS
+	</select>
+	<select id="getTechList" resultType="expertTechVO">
+	/**
+	 * 검토요청 - 분야 리스트 조회
+	 * ExpertAgendaMapper > getTechList
+	 */
+	select 
+		kt.TECH_ID
+		, kt.TECH_NAME
+		, kt.TECH_SORT
+		, kt.TECH_DEL_YN
+		, kt.TECH_SHW_YN
+		, kt.TECH_USE_YN
+		, kt.TECH_REG
+		, kt.TECH_REG_ID
+		, kt.TECH_UPDATE
+		, kt.TECH_UPDATE_ID
+	from kaits_tech kt
+	where 1=1
+	order by kt.TECH_SORT
+	</select>
+	<select id="getTechItemList" resultType="expertTechItemVO">
+	/**
+	 * 검토요청 - 분야 리스트 조회
+	 * ExpertAgendaMapper > getTechItemList
+	 */
+	select
+		kti.TECH_ITEM_ID
+		, kti.TECH_NTC_GID
+		, kti.TECH_ID
+		, kti.TECH_ITEM_NAME
+		, kti.TECH_ITEM_SORT
+		, kti.TECH_ITEM_MEMO
+		, kti.TECH_ITEM_DEL_YN
+		, kti.TECH_ITEM_SHW_YN
+		, kti.TECH_ITEM_REG
+		, kti.TECH_ITEM_REG_ID
+		, kti.TECH_ITEM_UPDATE
+		, kti.TECH_ITEM_UPDATE_ID
+	from kaits_tech_item kti
+	where 1=1
+	<if test="techId != null">
+		and kti.TECH_ID = #{techId}
+	</if>
+	order by kti.TECH_ITEM_SORT
+	</select>
+	<insert id="saveAgenda" parameterType="expertAgendaVO">
+		<selectKey keyProperty="agdIdx" resultType="String" order="BEFORE">
+		select CONCAT(date_format(NOW(), '%Y'),'-',#{agdType},'-',LPAD(IFNULL(MAX(right(kea.AGD_IDX, 2))+1, 1), 4, '0')) 
+		from kaits_ex_agenda kea
+		where 1=1
+			and SUBSTRING(kea.AGD_IDX, 1, 7) = CONCAT(date_format(NOW(), '%Y'),'-',#{agdType},'-')
+		</selectKey>
+	/**
+	 * 검토요청 - 데이터 저장
+	 * ExpertAgendaMapper > saveAgenda
+	 */
+	insert into kaits_ex_agenda (
+		RCPT_IDX
+		, AGD_IDX
+		, TECH_ID
+		, AGD_TYPE_CODE
+		, AGD_COMPANY_NM
+		, AGD_REGI_NUM
+		, AGD_COMPANY_CEO
+		, AGD_COMPANY_ADD
+		, AGD_COMPANY_PHONE
+		, AGD_COMPANY_B_ADDR
+		, AGD_COMPANY_B_PHONE
+		, AGD_PM_NAME
+		, AGD_PM_DEPT
+		, AGD_PM_POSITION
+		, AGD_PM_PHONE1
+		, AGD_PM_PHONE2
+		, AGD_PM_PHONE3
+		, AGD_PM_MOBILE1
+		, AGD_PM_MOBILE2
+		, AGD_PM_MOBILE3
+		, AGD_PM_EMAIL
+		, AGD_TECH_FORM
+		, AGD_EX_REASON_SALE
+		, AGD_EX_REASON_S_COM
+		, AGD_EX_REASON_TRANS
+		, AGD_EX_REASON_T_COM
+		, AGD_EX_REASON_ETC
+		, AGD_EX_REASON_E_COM
+		, AGD_EX_DATE
+		, AGD_TECH_QUA
+		, AGD_REASON
+		, AGD_LAW01
+		, AGD_LAW02
+		, AGD_LAW03
+		, AGD_REG_ID
+		, AGD_REG_DATE
+		, AGD_STATUS
+		, AGD_STATUS_CODE
+		, AGD_STATUS_LAST
+		, AGD_ADM_YN
+		, AGD_FIX_DATE
+	)
+	select  RCPT_IDX
+		, #{agdIdx}
+		, #{techId}
+		, RCPT_TYPE_CODE
+		, RCPT_COMPANY_NM
+		, RCPT_REGI_NUM
+		, RCPT_COMPANY_CEO
+		, RCPT_COMPANY_ADD
+		, RCPT_COMPANY_PHONE
+		, RCPT_COMPANY_B_ADD
+		, RCPT_COMPANY_B_PHONE
+		, RCPT_PM_NAME
+		, RCPT_PM_DEPT
+		, RCPT_PM_POSITION
+		, RCPT_PM_PHONE1
+		, RCPT_PM_PHONE2
+		, RCPT_PM_PHONE3
+		, RCPT_PM_MOBILE1
+		, RCPT_PM_MOBILE2
+		, RCPT_PM_MOBILE3
+		, RCPT_PM_EMAIL
+		, RCPT_TECH_FORM
+		, RCPT_EX_REASON_SALE
+		, RCPT_EX_REASON_S_COM
+		, RCPT_EX_REASON_TRANS
+		, RCPT_EX_REASON_T_COM
+		, RCPT_EX_REASON_ETC
+		, RCPT_EX_REASON_E_COM
+		, RCPT_EX_DATE
+		, RCPT_TECH_QUA
+		, RCPT_REASON
+		, RCPT_LAW01
+		, RCPT_LAW02
+		, RCPT_LAW03
+		, RCPT_REG_ID
+		, NOW()
+		, 'AS'
+		, RCPT_STATUS_CODE
+		, NOW()
+		, 'N'
+		, NOW()
+	from kaits_receipt
+	where 1=1
+	and RCPT_IDX = #{rcptIdx}
+	</insert>
+	<insert id="saveAgendaStat" parameterType="expertAgendaStatVO">
+		<selectKey keyProperty="agdViewCode" resultType="String" order="BEFORE">
+		select CONCAT(#{agdType}, '-', date_format(NOW(), '%Y'),'-',DATE_FORMAT(NOW(),'%m'),'-',LPAD(IFNULL(MAX(right(kas.AGD_VIEW_CODE, 4))+1, 1), 4, '0')) 
+		from kaits_agenda_stat kas
+		where 1=1
+			and SUBSTRING(kas.AGD_VIEW_CODE, 1, 9) = CONCAT(#{agdType}, '-', date_format(NOW(), '%Y'),'-',DATE_FORMAT(NOW(),'%m'))
+		</selectKey>
+		/**
+		 * 검토요청 - 데이터 저장
+		 * ExpertAgendaMapper > saveAgenda
+		 */
+		insert into kaits_agenda_stat (
+			AGD_CODE
+			, AGD_VIEW_CODE
+			, AGD_TECH_ID
+			, RCPT_META_CODE
+			, AGD_REG_ID
+			, AGD_REG_DATE
+			, AGD_STATUS
+			, AGD_STATUS_LAST
+		)
+		values (
+			  #{agdCode}
+			, #{agdViewCode}
+			, #{agdTechId}
+			, #{rcptMetaCode}
+			, #{admId}
+			, NOW()
+			, 'AS'
+			, NOW()
+		)
+	</insert>
+	<insert id="saveAgendaFile" parameterType="expertFileVO">
+	/**
+	 * 검토요청 - 파일 저장
+	 * ExpertAgendaMapper > saveAgendaFile
+	 */
+	insert into kaits_receipt_add_file (
+		RCPT_IDX
+		, FILE_RCPT_SEQ
+		, FILE_NM
+		, FILE_ORIGIN_NM
+		, FILE_SIZE
+		, FILE_KEY
+		, FILE_REG_ID
+		, FILE_REG_DATE
+	)
+	values (
+		#{rcptIdx}
+		, #{fileRcptSeq}
+		, #{fileNm}
+		, #{fileOriginNm}
+		, #{fileSize}
+		, #{fileKey}
+		, #{fileRegId}
+		, NOW()
+	)
+	</insert>
+	<insert id="saveAgendaHistory" parameterType="expertAgendaHisVO">
+	/**
+	 * 검토요청 - 파일 저장
+	 * ExpertAgendaMapper > saveAgendaHistory
+	 */
+	insert into kaits_ex_agenda_his (
+	  AGD_IDX
+	  ,HIS_CODE
+	  ,HIS_RCPT_STATUS
+	  ,HIS_REG_ID
+	  ,HIS_REG_DT
+  	)
+	values (
+	  	#{agdIdx}
+	  	, #{hisCode}
+	  	, #{hisRcptStatus}
+	  	, #{hisRegId}
+	  	, NOW()
+	  );
+	</insert>
+	<select id="getNewAgdStatCode" resultType="String" parameterType="expertAgendaStatVO">
+		/**
+		 * 새로운 안건번호 조회
+		 * ExpertReceiptMapper > getNewAgdStatCode
+		 */
+		SELECT 
+			CONCAT(DATE_FORMAT(NOW(),'%Y'),'-',(
+				SELECT km.RCPT_TYPE_CODE
+				FROM kaits_meta km
+				WHERE km.RCPT_META_CODE = #{rcptMetaCode}
+			),'-',LPAD(IFNULL(MAX(RIGHT(kas.AGD_CODE,4)),0)+1,4,'0')) AS AGD_CODE
+		FROM kaits_agenda_stat kas
+		WHERE SUBSTRING(kas.AGD_CODE,1,7) = CONCAT(
+			DATE_FORMAT(NOW(),'%Y'),'-'
+			,(	SELECT km.RCPT_TYPE_CODE
+				FROM kaits_meta km
+				WHERE km.RCPT_META_CODE = #{rcptMetaCode}
+			)
+		)
+	</select>
+	
+	<update id="updateAgdExIdx" parameterType="expertAgendaStatVO">
+		<selectKey keyProperty="agdStatus" resultType="String" order="BEFORE">
+			<if test="agdExIdx != null">
+				SELECT keci.COMMITTEE_STATUS 
+				FROM kaits_ex_commit_info keci
+				WHERE keci.COMMITTEE_IDX = #{agdExIdx}
+			</if>
+			<if test="agdExIdx == null">
+				SELECT 'AS' FROM DUAL
+			</if>
+		</selectKey>
+		/**
+		 * 안건 전문위원해 번호 변경
+		 * ExpertAgendaMapper > updateAgdExIdx
+		 */
+		update kaits_agenda_stat set 
+			AGD_EX_IDX = #{agdExIdx}
+			, AGD_STATUS = #{agdStatus}
+			, AGD_STATUS_LAST = NOW()
+			, AGD_STATUS_LAST_ID = #{admId}
+		where AGD_CODE= #{agdCode}
+	</update>
+	<select id="searchAgendaCode" resultType="expertAgendaStatVO" parameterType="expertAgendaStatVO">
+		/**
+		 * 새로운 안건번호 조회
+		 * ExpertReceiptMapper > searchAgendaCode
+		 */
+		SELECT 
+			kas.AGD_CODE
+			, krs.RCPT_CODE
+			, kas.AGD_VIEW_CODE
+		FROM kaits_agenda_stat kas
+		INNER JOIN kaits_meta km
+			ON km.RCPT_META_CODE = kas.RCPT_META_CODE
+		INNER JOIN kaits_receipt_stat krs
+			ON krs.RCPT_META_CODE = km.RCPT_META_CODE
+		WHERE 1=1
+		<if test="agdViewCode != null">
+			AND kas.AGD_VIEW_CODE LIKE CONCAT('%', #{agdViewCode}, '%')
+		</if>
+	</select>
+	<update id="updateAgdStatusComplete" parameterType="expertAgendaStatVO">
+		/**
+		 * 안건 전문위원해 번호 변경
+		 * ExpertAgendaMapper > updateAgdStatusComplete
+		 */
+		update kaits_agenda_stat set 
+			  AGD_STATUS = #{agdStatus}
+			, AGD_STATUS_LAST = NOW()
+			, AGD_STATUS_LAST_ID = #{admId}
+		where AGD_CODE= #{agdCode}
+	</update>
+	<delete id="deleteAgenda" parameterType="expertAgendaStatVO">
+		/**
+		 * 안건 전문위원해 번호 변경
+		 * ExpertAgendaMapper > deleteAgenda
+		 */
+		delete from kaits_agenda_stat
+		where AGD_CODE= #{agdCode}
+	</delete>
+</mapper>

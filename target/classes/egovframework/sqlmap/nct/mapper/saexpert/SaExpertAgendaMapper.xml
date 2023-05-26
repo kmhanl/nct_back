@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kaits.nct.saexpert.mapper.SaExpertAgendaMapper">
+	
+	<select id="getAgendaList" parameterType="saExpertAgendaVO" resultType="saExpertAgendaVO">
+	/**
+	 * 안건 현황 대이터 조회
+	 * - 안건 데이터(안건현황 테이블 데이터)
+	 * SaExpertAgendaMapper > getAgendaList
+	 * */
+		select 
+			  agd.AGD_IDX
+			, agd.EX_AGD_IDX
+			, agd.TECH_ID
+			, kt.TECH_NAME
+			, agd.AGD_TYPE_CODE
+			, agd.AGD_TECH_NTC_GID
+			, agd.AGD_TECH_UNIQ_ID
+			, agd.AGD_TECH_NAME
+		    , case agd.AGD_TYPE_CODE
+			        when '01' then '여부판정'
+			        when '02' then '사전검토'
+			        when '03' then '수출신고'
+			        when '04' then '수출승인'
+			        when '05' then '해외인수·합병 사전검토'
+			        when '06' then '해외인수·합병 신고'
+			        when '07' then '해외인수·합병 승인'
+			        when '08' then '지정'
+			        when '09' then '변경'
+			        when '10' then '해제'
+			        when '11' then '기타'
+			        else ''
+				end as AGD_TYPE_CODE_NM
+			, agd.AGD_COMPANY_NM
+			, agd.AGD_REGI_NUM
+			, agd.AGD_COMPANY_CEO
+			, agd.AGD_COMPANY_ADD
+			, agd.AGD_COMPANY_PHONE
+			, agd.AGD_COMPANY_B_ADDR
+			, agd.AGD_COMPANY_B_PHONE
+			, agd.AGD_PM_NAME
+			, agd.AGD_PM_DEPT
+			, agd.AGD_PM_POSITION
+			, agd.AGD_PM_PHONE1
+			, agd.AGD_PM_PHONE2
+			, agd.AGD_PM_PHONE3
+			, agd.AGD_PM_MOBILE1
+			, agd.AGD_PM_MOBILE2
+			, agd.AGD_PM_MOBILE3
+			, agd.AGD_PM_EMAIL
+			, agd.AGD_TECH_FORM
+			, agd.AGD_EX_REASON_SALE
+			, agd.AGD_EX_REASON_S_COM
+			, agd.AGD_EX_REASON_TRANS
+			, agd.AGD_EX_REASON_T_COM
+			, agd.AGD_EX_REASON_ETC
+			, agd.AGD_EX_REASON_E_COM
+			, agd.AGD_EX_DATE
+			, agd.AGD_TECH_QUA
+			, agd.AGD_REASON
+			, agd.AGD_LAW01
+			, agd.AGD_LAW02
+			, agd.AGD_LAW03
+			, agd.AGD_REG_ID
+			, agd.AGD_REG_DATE
+			, date_format(agd.AGD_REG_DATE, '%Y년 %m월 %d일 %k:%i:%s') as AGD_REG_DATE_STR
+			, agd.AGD_STATUS
+    		, 	case agd.AGD_STATUS
+			        when 'CR' then '검토예정'
+			        when 'AS' then '검토요청완료'
+			        when 'SE' then '개최예정'
+			        when 'ID' then '결과입력중'
+			        when 'IC' then '결과입력완료'
+			        when 'EC' then '검토결과확정'
+			        when '05' then '안건재검토'
+			        else ''
+				end as AGD_STATUS_NM
+			, agd.AGD_STATUS_CODE
+			, agd.AGD_STATUS_LAST
+			, date_format(agd.AGD_STATUS_LAST, '%Y-%m-%d') as AGD_STATUS_LAST_STR
+			, agd.AGD_EX_IDX
+			, agd.AGD_ADM_YN
+			, agd.AGD_FIX_DATE
+			, kti.TECH_ITEM_NAME
+
+		from kaits_sa_agenda agd
+		inner join kaits_tech kt
+			on kt.TECH_ID = agd.TECH_ID
+		inner join kaits_tech_item kti
+			on kti.TECH_ITEM_ID = agd.AGD_TECH_UNIQ_ID
+		where 1=1
+		<if test="agdStatus != null">
+			and agd.AGD_STATUS = #{agdStatus}
+		</if>
+		order by AGD_STATUS_LAST desc, AGD_IDX desc
+	</select>	
+	<select id="getAgendaListGroupCount" parameterType="saExpertAgendaVO" resultType="saExpertTabVO">
+	/**
+	 * 안건 상태 별 데이터 개수 조회
+	 * SaExpertAgendaMapper > getAgendaListGroupCount
+	 */
+	select agd.AGD_STATUS as 'TITLE', count(*) as 'COUNT' 
+	from kaits_sa_agenda agd
+	where 1=1
+	group by agd.AGD_STATUS
+	</select>
+</mapper>

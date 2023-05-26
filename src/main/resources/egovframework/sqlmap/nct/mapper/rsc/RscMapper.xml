@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kaits.nct.rsc.mapper.RscMapper">
+	<select id="RscMemberList" parameterType="rscMemberVO" resultType="rscMemberVO">
+		/** 2022년 실태 조사 > 대상 기업 리스트 조회  **/
+		SELECT
+			RSC_MEM_CODE
+			,RSC_CODE
+			,RSC_INVI_KEY
+			,RSC_MEM_COMPANY
+			,RSC_MEM_COM_CODE
+			,RSC_MEM_NAME
+			,RSC_MEM_PHONE
+			,RSC_MEM_EMAIL
+			,RSC_MEM_PASSWORD
+			,RSC_MEM_DI
+			,RSC_MEMO
+			,RSC_STR_DATE
+			,date_format(RSC_STR_DATE, '%Y년 %m월 %d일') as RSC_STR_DATE8_KO
+			,RSC_END_DATE
+			,date_format(RSC_END_DATE, '%Y년 %m월 %d일') as RSC_END_DATE8_KO
+			,RSC_STATUS
+			,RSC_STATUS
+			, CASE RSC_STATUS WHEN 'RD' THEN '참여전' WHEN 'IM' THEN '진행중' WHEN 'CO' THEN '참여완료' END AS RSC_STATUS_NM
+			,RSC_STATUS_COM1
+			,RSC_STATUS_COM2
+			,RSC_STATUS_COM3
+			,RSC_STATUS_COM4
+			,RSC_STATUS_INVESTIGATE1
+			,RSC_STATUS_INVESTIGATE2
+			,RSC_STATUS_INVESTIGATE3
+			,RSC_STATUS_INVESTIGATE4
+			,RSC_STATUS_INVESTIGATE5
+			,RSC_STATUS_INVESTIGATE6
+			,RSC_STATUS_INVESTIGATE7
+			,RSC_STATUS_REGISTRATION1
+			,RSC_STATUS_REGISTRATION2
+			,RSC_STATUS_REGISTRATION3
+			,RSC_STATUS_REGISTRATION4
+			,RSC_STATUS_SURVEY
+			,RSC_INTO_FLAG
+		FROM kaits_research_member	
+		WHERE 1=1
+			AND RSC_INTO_FLAG = 'Y'
+		ORDER BY RSC_MEM_COMPANY ASC
+	</select>
+	<select id="getCompanyList" parameterType="rscMemberVO" resultType="rscMemberVO">
+		/** 2022년 실태 조사 > 대상 기업 리스트 조회  **/
+		SELECT
+			RSC_MEM_CODE
+			,RSC_CODE
+			,RSC_INVI_KEY
+			,RSC_MEM_COMPANY
+			,RSC_MEM_COM_CODE
+			,RSC_MEM_NAME
+			,RSC_MEM_PHONE
+			,RSC_MEM_EMAIL
+			,RSC_MEM_PASSWORD
+			,RSC_MEM_DI
+			,RSC_MEMO
+			,RSC_STR_DATE
+			,date_format(RSC_STR_DATE, '%Y년 %m월 %d일') as RSC_STR_DATE8_KO
+			,RSC_END_DATE
+			,date_format(RSC_END_DATE, '%Y년 %m월 %d일') as RSC_END_DATE8_KO
+			,RSC_STATUS
+			,CASE RSC_STATUS WHEN 'RD' THEN '참여전' WHEN 'IM' THEN '진행중' WHEN 'CO' THEN '참여완료' END AS RSC_STATUS_NM
+			,RSC_STATUS_COM1
+			,RSC_STATUS_COM2
+			,RSC_STATUS_COM3
+			,RSC_STATUS_COM4
+			,RSC_STATUS_INVESTIGATE1
+			,RSC_STATUS_INVESTIGATE2
+			,RSC_STATUS_INVESTIGATE3
+			,RSC_STATUS_INVESTIGATE4
+			,RSC_STATUS_INVESTIGATE5
+			,RSC_STATUS_INVESTIGATE6
+			,RSC_STATUS_INVESTIGATE7
+			,RSC_STATUS_REGISTRATION1
+			,RSC_STATUS_REGISTRATION2
+			,RSC_STATUS_REGISTRATION3
+			,RSC_STATUS_REGISTRATION4
+			,RSC_STATUS_SURVEY
+			,RSC_INTO_FLAG
+		FROM kaits_research_member	
+		WHERE 1=1
+			AND RSC_INTO_FLAG = #{rscIntoFlag}
+		ORDER BY RSC_MEM_CODE ASC
+	</select>
+	
+	<select id="loadCompany" parameterType="rscMemberVO" resultType="rscMemberVO">
+		/** 2022년 실태 조사 > 대상 기업 1건 조회  **/
+		SELECT
+			RSC_MEM_CODE
+			,RSC_CODE
+			,RSC_INVI_KEY
+			,RSC_MEM_COMPANY
+			,RSC_MEM_COM_CODE
+			,RSC_MEM_NAME
+			,RSC_MEM_PHONE
+			,RSC_MEM_EMAIL
+			,RSC_MEM_PASSWORD
+			,RSC_MEM_DI
+			,RSC_MEMO
+			,RSC_STR_DATE
+			,date_format(RSC_STR_DATE, '%Y년 %m월 %d일') as RSC_STR_DATE8_KO
+			,RSC_END_DATE
+			,date_format(RSC_END_DATE, '%Y년 %m월 %d일') as RSC_END_DATE8_KO
+			,RSC_STATUS
+			,CASE RSC_STATUS WHEN 'RD' THEN '참여전' WHEN 'IM' THEN '진행중' WHEN 'CO' THEN '참여완료' END AS RSC_STATUS_NM
+			,RSC_STATUS_COM1
+			,RSC_STATUS_COM2
+			,RSC_STATUS_COM3
+			,RSC_STATUS_COM4
+			,RSC_STATUS_INVESTIGATE1
+			,RSC_STATUS_INVESTIGATE2
+			,RSC_STATUS_INVESTIGATE3
+			,RSC_STATUS_INVESTIGATE4
+			,RSC_STATUS_INVESTIGATE5
+			,RSC_STATUS_INVESTIGATE6
+			,RSC_STATUS_INVESTIGATE7
+			,RSC_STATUS_REGISTRATION1
+			,RSC_STATUS_REGISTRATION2
+			,RSC_STATUS_REGISTRATION3
+			,RSC_STATUS_REGISTRATION4
+			,RSC_STATUS_SURVEY
+			,RSC_INTO_FLAG
+		FROM kaits_research_member	
+		WHERE 1=1
+			AND RSC_MEM_CODE = #{rscMemCode}
+	</select>
+	<update id="saveCompany" parameterType="RscMemberVO">
+		/** 담당자 정보 수정  update **/
+		UPDATE kaits_research_member SET
+			RSC_INVI_KEY = #{rscInviKey}
+			,RSC_MEM_COMPANY = #{rscMemCompany}
+			,RSC_MEM_COM_CODE = #{rscMemComCode}
+			,RSC_MEM_NAME = #{rscMemName}
+			,RSC_MEM_EMAIL = #{rscMemEmail}
+		WHERE 1=1
+			AND RSC_MEM_CODE = #{rscMemCode}
+	</update>
+	
+	<select id="RscInviStatList" parameterType="rscStatusVO" resultType="rscStatusVO">
+		/** 2022년 실태 조사 > 최초인증 상태 값 리스트 조회  **/
+		SELECT 'RSC_STATUS' AS STAT_CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_STATUS_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_STATUS_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_STATUS_CO
+		FROM DUAL
+	</select>
+	<select id="RscComStatList" parameterType="rscStatusVO" resultType="rscStatusVO">
+		/** 2022년 실태 조사 > 기관 기본 현황  상태 조회  **/
+		SELECT 'RSC_COM_CNT1' AS STAT_CODE
+			,(select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_COM1 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_COM_CNT1_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_COM1 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_COM_CNT1_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_COM1 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_COM_CNT1_CO
+		FROM DUAL
+		UNION ALL
+		SELECT'RSC_COM_CNT2' AS STAT_CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_COM2 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_COM_CNT2_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_COM2 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_COM_CNT2_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_COM2 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_COM_CNT2_CO
+		FROM DUAL
+		UNION ALL
+		SELECT'RSC_COM_CNT3' AS STAT_CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_COM3 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_COM_CNT3_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_COM3 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_COM_CNT3_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_COM3 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_COM_CNT3_CO
+		FROM DUAL
+		UNION ALL
+		SELECT'RSC_COM_CNT4' AS STAT_CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_COM4 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_COM_CNT4_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_COM4 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_COM_CNT4_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_COM4 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_COM_CNT4_CO
+		FROM DUAL
+	</select>
+	<select id="RscHaveStatList" parameterType="rscStatusVO" resultType="rscStatusVO">
+		/** 2022년 실태 조사 > 보유 기술 입력  상태 조회  **/
+		SELECT'RSC_HAVE_CNT1' AS STAT_CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_REGISTRATION1 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_HAVE_CNT1_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_REGISTRATION1 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_HAVE_CNT1_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_REGISTRATION1 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_HAVE_CNT1_CO
+		FROM DUAL
+		UNION ALL
+		SELECT'RSC_HAVE_CNT2' AS STAT_CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_REGISTRATION2 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_HAVE_CNT2_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_REGISTRATION2 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_HAVE_CNT2_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_REGISTRATION2 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_HAVE_CNT2_CO
+		FROM DUAL
+		UNION ALL
+		SELECT'RSC_HAVE_CNT3' AS STAT_CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_REGISTRATION3 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_HAVE_CNT3_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_REGISTRATION3 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_HAVE_CNT3_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_REGISTRATION3 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_HAVE_CNT3_CO
+		FROM DUAL
+		UNION ALL
+		SELECT'RSC_HAVE_CNT4' AS STAT_CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_REGISTRATION4 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_HAVE_CNT4_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_REGISTRATION4 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_HAVE_CNT4_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_REGISTRATION4 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_HAVE_CNT4_CO
+		FROM DUAL
+	</select>
+	<select id="RscInqStatList" parameterType="rscStatusVO" resultType="rscStatusVO">
+		/** 2022년 실태 조사 > 현황 실태조사  상태 조회  **/
+		SELECT'RSC_INQ_CNT1' AS STAT_CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE1 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT1_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE1 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT1_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE1 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT1_CO
+		FROM DUAL
+		UNION ALL
+		SELECT'RSC_INQ_CNT2' AS CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE2 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT2_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE2 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT2_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE2 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT2_CO
+		FROM DUAL
+		UNION ALL
+		SELECT'RSC_INQ_CNT3' AS CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE3 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT3_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE3 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT3_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE3 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT3_CO
+		FROM DUAL
+		UNION ALL
+		SELECT'RSC_INQ_CNT4' AS CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE4 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT4_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE4 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT4_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE4 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT4_CO
+		FROM DUAL
+		UNION ALL
+		SELECT'RSC_INQ_CNT5' AS CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE5 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT5_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE5 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT5_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE5 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT5_CO
+		FROM DUAL
+		UNION ALL
+		SELECT'RSC_INQ_CNT6' AS CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE6 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT6_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE6 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT6_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE6 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT6_CO
+		FROM DUAL
+		UNION ALL
+		SELECT'RSC_INQ_CNT7' AS CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE7 = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT7_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE7 = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT7_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_INVESTIGATE7 = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT7_CO
+		FROM DUAL
+	</select>
+	<select id="RscSurStatList" parameterType="rscStatusVO" resultType="rscStatusVO">
+		/** 2022년 실태 조사 > 기타 설문조사  상태 조회  **/
+		SELECT'RSC_INQ_CNT8' AS CODE
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_SURVEY = 'RD' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT8_RD
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_SURVEY = 'IM' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT8_IM
+			, (select COUNT(*) from kaits_research_member krm1 where krm1.RSC_STATUS = 'IM' and krm1.RSC_STATUS_SURVEY = 'CO' AND RSC_INTO_FLAG = 'Y') as RSC_INQ_CNT8_CO
+		FROM DUAL
+	</select>
+	
+	<select id="RscDataList" parameterType="rscDataVO" resultType="rscDataVO">
+		/** 2022년 실태 조사 > 대상 기업 기준 데이터 조회  **/
+		SELECT
+			rscm.RSC_MEM_CODE
+			,rscm.RSC_CODE
+			,rscm.RSC_INVI_KEY
+			,rscm.RSC_MEM_COMPANY
+			,rscm.RSC_MEM_COM_CODE
+			,rscm.RSC_MEM_NAME
+			,rscm.RSC_MEM_PHONE
+			,rscm.RSC_MEM_EMAIL
+			,rscm.RSC_MEM_PASSWORD
+			,rscm.RSC_MEM_DI
+			,rscm.RSC_MEMO
+			,rscm.RSC_STR_DATE
+			,date_format(rscm.RSC_STR_DATE, '%Y년 %m월 %d일') as RSC_STR_DATE8_KO
+			,rscm.RSC_END_DATE
+			,date_format(rscm.RSC_END_DATE, '%Y년 %m월 %d일') as RSC_END_DATE8_KO
+			,rscm.RSC_STATUS
+			,rscm.RSC_STATUS
+			, CASE rscm.RSC_STATUS WHEN 'RD' THEN '참여전' WHEN 'IM' THEN '진행중' WHEN 'CO' THEN '참여완료' END AS RSC_STATUS_NM
+			,rscm.RSC_STATUS_COM1
+			,rscm.RSC_STATUS_COM2
+			,rscm.RSC_STATUS_COM3
+			,rscm.RSC_STATUS_COM4
+			,rscm.RSC_STATUS_INVESTIGATE1
+			,rscm.RSC_STATUS_INVESTIGATE2
+			,rscm.RSC_STATUS_INVESTIGATE3
+			,rscm.RSC_STATUS_INVESTIGATE4
+			,rscm.RSC_STATUS_INVESTIGATE5
+			,rscm.RSC_STATUS_INVESTIGATE6
+			,rscm.RSC_STATUS_INVESTIGATE7
+			,rscm.RSC_STATUS_REGISTRATION1
+			,rscm.RSC_STATUS_REGISTRATION2
+			,rscm.RSC_STATUS_REGISTRATION3
+			,rscm.RSC_STATUS_REGISTRATION4
+			,rscm.RSC_STATUS_SURVEY
+			,rscm.RSC_INTO_FLAG
+			,tar.RSC_TARGET_COM_NAME
+			,tar.RSC_TARGET_COM_YEAR
+			,tar.RSC_TARGET_REGI_NUM
+			,tar.RSC_TARGET_ADD_POST
+			,tar.RSC_TARGET_ADD1
+			,tar.RSC_TARGET_ADD2
+			,tar.RSC_TARGET_COM_TYPE
+			,tar.RSC_TARGET_COM_VOL
+			,tar.RSC_TARGET_PAY1
+			,tar.RSC_TARGET_PAY2
+			,tar.RSC_TARGET_PAY3
+			,tat.RSC_TARGET_TECH1
+			,tat.RSC_TARGET_TECH2
+			,tat.RSC_TARGET_TECH3
+			,tat.RSC_TARGET_TECH4
+			,tat.RSC_TARGET_TECH5
+			,tat.RSC_TARGET_TECH6
+			,tat.RSC_TARGET_TECH7
+			,tat.RSC_TARGET_TECH8
+			,tat.RSC_TARGET_TECH9
+			,tat.RSC_TARGET_TECH10
+			,tat.RSC_TARGET_TECH11
+			,tat.RSC_TARGET_TECH12
+			,tat.RSC_TARGET_TECH13
+			,tat.RSC_TARGET_CHARACTER1
+			,tat.RSC_TARGET_CHARACTER2
+			,tat.RSC_TARGET_CHARACTER3
+			,tat.RSC_TARGET_CHARACTER4
+			,tat.RSC_TARGET_CHARACTER_ETC
+			,cre.RSC_CREW01_NAME
+			,cre.RSC_CREW01_DEPTH
+			,cre.RSC_CREW01_POSITION
+			,cre.RSC_CREW01_PHONE
+			,cre.RSC_CREW01_MOBILE
+			,cre.RSC_CREW01_EMAIL
+			,cre.RSC_CREW02_NAME
+			,cre.RSC_CREW02_DEPTH
+			,cre.RSC_CREW02_POSITION
+			,cre.RSC_CREW02_PHONE
+			,cre.RSC_CREW02_MOBILE
+			,cre.RSC_CREW02_EMAIL
+			,cre.RSC_CREW03_NAME
+			,cre.RSC_CREW03_DEPTH
+			,cre.RSC_CREW03_POSITION
+			,cre.RSC_CREW03_PHONE
+			,cre.RSC_CREW03_MOBILE
+			,cre.RSC_CREW03_EMAIL
+			,mem.RSC_COM_MEM1
+			,mem.RSC_COM_MEM2
+			,mem.RSC_COM_MEM3
+			,mem.RSC_COM_MEM4
+		FROM kaits_research_member	rscm
+		LEFT JOIN kaits_research_target_com tar
+			ON tar.RSC_MEM_CODE = rscm.RSC_MEM_CODE
+		LEFT JOIN kaits_research_target_tech tat
+			ON tat.RSC_MEM_CODE = rscm.RSC_MEM_CODE
+		LEFT JOIN kaits_research_commem mem
+			ON mem.RSC_MEM_CODE = rscm.RSC_MEM_CODE
+		LEFT JOIN kaits_research_crew cre
+			ON cre.RSC_MEM_CODE = rscm.RSC_MEM_CODE	
+		WHERE 1=1
+			AND rscm.RSC_INTO_FLAG = 'Y' AND rscm.RSC_STATUS = 'CO' 
+		ORDER BY RSC_MEM_CODE ASC
+	</select>
+	
+	<select id="RscDataForList" parameterType="rscForDataVO" resultType="rscForDataVO">
+		/** 2022년 실태 조사 > 대상 기업 기준 데이터 조회  **/
+		SELECT 
+			mem.RSC_MEM_CODE
+			,MAX(mem.RSC_MEM_COMPANY) AS RSC_MEM_COMPANY
+			,COUNT(tfor.RSC_FOR_COUNTRY) AS RSC_FOR_CNT
+		FROM kaits_research_member mem
+		INNER JOIN kaits_research_target_for tfor
+			ON tfor.RSC_MEM_CODE = mem.RSC_MEM_CODE
+			AND tfor.RSC_FOR_TYPE = #{rscForType}
+		WHERE 1=1 
+			AND mem.RSC_STATUS = 'CO'
+			AND mem.RSC_INTO_FLAG = 'Y'
+		GROUP BY mem.RSC_MEM_CODE
+		ORDER BY mem.RSC_MEM_CODE ASC, tfor.RSC_FOR_IDX ASC
+	</select>
+	<select id="RscDataForMemList" parameterType="rscForDataVO" resultType="rscForDataVO">
+		/** 2022년 실태 조사 > 대상 기업 기준 데이터 조회  **/
+		SELECT 
+			mem.RSC_MEM_CODE
+			,mem.RSC_MEM_COMPANY
+			,tfor.RSC_FOR_TYPE
+			,tfor.RSC_FOR_COUNTRY
+			,tfor.RSC_FOR_TOTAL
+			,tfor.RSC_FOR_NUM1
+			,tfor.RSC_FOR_NUM2
+			,tfor.RSC_FOR_NUM3
+			,tfor.RSC_FOR_NUM4
+			,tfor.RSC_FOR_NUM5
+			,tfor.RSC_FOR_NUM6
+			,tfor.RSC_FOR_NUM7
+			,tfor.RSC_FOR_NUM8
+			,tfor.RSC_FOR_NUM9
+			,tfor.RSC_FOR_NUM10
+			,tfor.RSC_FOR_NUM11
+			,tfor.RSC_FOR_NUM12
+			,tfor.RSC_FOR_NUM13
+			,tfor.RSC_FOR_NUM14
+			,tfor.RSC_FOR_NUM15
+			,tfor.RSC_FOR_NUM16
+			,tfor.RSC_FOR_NUM17
+			,tfor.RSC_FOR_NUM18
+			,tfor.RSC_FOR_NUM19
+			,tfor.RSC_FOR_NUM20
+			,tfor.RSC_FOR_NUM21
+			,tfor.RSC_FOR_NUM22
+			,tfor.RSC_FOR_NUM23
+			,tfor.RSC_FOR_NUM24
+			,tfor.RSC_FOR_NUM25
+			,tfor.RSC_FOR_NUM26
+			,tfor.RSC_FOR_NUM27
+		FROM kaits_research_member mem
+		INNER JOIN kaits_research_target_for tfor
+			ON tfor.RSC_MEM_CODE = mem.RSC_MEM_CODE
+			AND tfor.RSC_FOR_TYPE = #{rscForType}
+		WHERE 1=1 
+			AND mem.RSC_STATUS = 'CO'
+			AND mem.RSC_INTO_FLAG = 'Y'
+		ORDER BY mem.RSC_MEM_CODE ASC, tfor.RSC_FOR_IDX ASC
+	</select>
+	
+	<select id="RscAnsDataList" parameterType="RscAnswerVO" resultType="RscAnswerVO">
+		/** 2022년 실태 조사 > 대상 기업 기준 데이터 조회  **/
+		SELECT 
+			kra.RSC_MEM_CODE
+			,rscm.RSC_MEM_COMPANY
+			,kra.RSC_QUES_IDX
+			,que.RSC_SECTION
+			,que.RSC_ANS_TYPE
+			,que.RSC_ANS_SEL_TYPE 
+			,kra.RSC_QUES_ANS
+			,kra.RSC_QUES_ANS_ETC1
+			,kra.RSC_QUES_ANS_ETC2
+			,kra.RSC_QUES_ANS_ETC3
+			,kra.RSC_QUES_ANS_ETC4
+			,kra.RSC_QUES_ANS_ETC5
+			,kra.RSC_QUES_ANS_ETC6
+			,kra.RSC_QUES_ANS_TEXT
+		FROM kaits_research_question que 
+		LEFT JOIN kaits_research_answer kra
+			ON kra.RSC_QUES_IDX = que.RSC_QUES_IDX
+		LEFT JOIN kaits_research_member	rscm
+			ON rscm.RSC_MEM_CODE = kra.RSC_MEM_CODE
+		WHERE 1=1
+			AND que.RSC_SECTION = 'SEC01'
+		ORDER BY kra.RSC_MEM_CODE ASC
+	</select>
+	<select id="RscAnsComList" parameterType="RscAnswerVO" resultType="RscAnswerVO">
+		/** 2022년 실태 조사 > 대상 기업 기준 데이터 조회  **/
+		SELECT
+			rscm.RSC_MEM_CODE
+			,rscm.RSC_CODE
+			,rscm.RSC_INVI_KEY
+			,rscm.RSC_MEM_COMPANY
+			,rscm.RSC_MEM_COM_CODE
+		FROM kaits_research_member	rscm
+		WHERE 1=1
+			AND rscm.RSC_INTO_FLAG = 'Y' AND rscm.RSC_STATUS = 'CO' 
+		ORDER BY RSC_MEM_CODE ASC
+	</select>
+	
+	<select id="RscAnsContentList" parameterType="RscAnswerVO" resultType="RscAnswerVO">
+		/** 2022년 실태 조사 > 대상 기업 기준 데이터 조회  **/
+		SELECT 
+			mem.RSC_MEM_CODE
+			,mem.RSC_MEM_COMPANY
+			,ans.RSC_QUES_IDX
+			,ans.RSC_QUES_ANS
+			,ans.RSC_QUES_ANS_ETC1
+			,ans.RSC_QUES_ANS_ETC2
+			,ans.RSC_QUES_ANS_ETC3
+			,ans.RSC_QUES_ANS_ETC4
+			,ans.RSC_QUES_ANS_ETC5
+			,ans.RSC_QUES_ANS_ETC6
+			,ans.RSC_QUES_ANS_TEXT
+		FROM kaits_research_member mem
+		INNER JOIN kaits_research_answer ans
+			ON ans.RSC_MEM_CODE = mem.RSC_MEM_CODE
+			AND ans.RSC_QUES_IDX >= 'RSC-2022-0000-01-097' 
+			<![CDATA[AND ans.RSC_QUES_IDX <= 'RSC-2022-0000-01-127']]>
+		WHERE 1=1 
+			AND mem.RSC_STATUS = 'CO'
+			AND mem.RSC_INTO_FLAG = 'Y'
+		ORDER BY mem.RSC_MEM_CODE ASC, ans.RSC_QUES_IDX ASC
+	</select>
+	
+	<select id="RscAnsqus01List" parameterType="RscAnswerVO" resultType="RscAnswerVO">
+		/** 2022년 실태 조사 > 대상 기업 기준 데이터 조회  **/
+		SELECT 
+			mem.RSC_MEM_CODE
+			,mem.RSC_MEM_COMPANY
+			,kra.RSC_QUES_IDX
+			,kra.RSC_QUES_ANS
+			,kra.RSC_QUES_ANS_ETC1
+			,kra.RSC_QUES_ANS_ETC2
+			,kra.RSC_QUES_ANS_ETC3
+			,kra.RSC_QUES_ANS_ETC4
+			,kra.RSC_QUES_ANS_ETC5
+			,kra.RSC_QUES_ANS_ETC6
+			,kra.RSC_QUES_ANS_TEXT
+		FROM kaits_research_answer kra
+		INNER JOIN kaits_research_member mem
+			ON mem.RSC_MEM_CODE = kra.RSC_MEM_CODE
+			AND mem.RSC_INTO_FLAG = 'Y' AND mem.RSC_STATUS = 'CO' 
+		WHERE 1=1
+			AND kra.RSC_QUES_IDX = #{rscQuesIdx}
+		ORDER BY kra.RSC_MEM_CODE ASC
+	</select>
+	
+</mapper>

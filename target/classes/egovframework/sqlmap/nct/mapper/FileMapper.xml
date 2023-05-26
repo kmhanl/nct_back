@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kaits.nct.common.mapper.FileMapper">
+	<select id="getNewFileCode" resultType="String">
+		/**
+		 * 새로운 파일코드 조회
+		 * FileMapper > getNewFileCode
+		 */
+		SELECT 
+			CONCAT(DATE_FORMAT(NOW(),'%Y'),'-',DATE_FORMAT(NOW(),'%m'),'-',DATE_FORMAT(NOW(),'%d'),'-',DATE_FORMAT(NOW(),'%H'),'-',LPAD(IFNULL(MAX(RIGHT(krs.FILE_CODE,4)),0)+1,4,'0')) AS FILE_CODE
+		FROM kaits_file_mst krs 
+		WHERE SUBSTRING(krs.FILE_CODE,1,13) = CONCAT(DATE_FORMAT(NOW(),'%Y'),'-',DATE_FORMAT(NOW(),'%m'),'-',DATE_FORMAT(NOW(),'%d'),'-',DATE_FORMAT(NOW(),'%H'))
+		
+		/**
+		SELECT CONCAT(
+			DATE_FORMAT(NOW(), '%Y'), '-', DATE_FORMAT(NOW(), '%m'), '-',
+			LPAD(IFNULL(MAX(SUBSTRING(kfm.FILE_CODE,9)),0)+1,6,'0')
+		) AS FILE_CODE
+		FROM kaits_file_mst kfm
+		WHERE SUBSTRING(kfm.FILE_CODE,1,4) = DATE_FORMAT(NOW(), '%Y')
+			AND SUBSTRING(kfm.FILE_CODE,6,2) = DATE_FORMAT(NOW(), '%m')
+		*/
+	</select>
+	<insert id="insertFileMst" parameterType="fileMstVO">
+		INSERT INTO kaits_file_mst (
+		    FILE_CODE
+		    , FILE_NM
+		    , FILE_ORIGIN_NM
+		    , FILE_PATH
+		    , FILE_SIZE
+		    , FILE_KEY
+		) VALUES (
+		    #{fileCode}
+		    , #{fileNm}
+		    , #{fileOriginNm}
+		    , #{filePath}
+		    , #{fileSize}
+		    , #{fileKey}
+		)
+	</insert>
+	<insert id="insertFileIdx" parameterType="fileIdxVO">
+		INSERT INTO kaits_file_idx (
+		    FILE_IDX
+		    , FILE_CODE
+		    , FILE_DEPTH
+		    , FILE_TYPE
+		    , FILE_SORT
+		    , FILE_AGD_IDX
+		    , FILE_REG_ID
+		    , FILE_REG_DATE
+		) VALUES (
+		    (SELECT IFNULL(MAX(kfi1.FILE_IDX),0)+1 FROM kaits_file_idx kfi1 WHERE 1=1)
+		    , #{fileCode}
+		    , #{fileDepth}
+		    , #{fileType}
+		    , (SELECT IFNULL(MAX(kfi2.FILE_SORT),0)+1 FROM kaits_file_idx kfi2 WHERE kfi2.FILE_TYPE = #{fileType} AND kfi2.FILE_AGD_IDX = #{fileAgdIdx})
+		    , #{fileAgdIdx}
+		    , #{fileRegId}
+		    , NOW()
+		)
+	</insert>
+</mapper>

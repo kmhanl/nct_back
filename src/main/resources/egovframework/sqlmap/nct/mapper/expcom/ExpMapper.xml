@@ -1,0 +1,1435 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kaits.nct.exp.mapper.ExpMapper">
+	
+	<select id="nctTech" parameterType="expNctTechVO" resultType="expNctTechVO">
+		/** 공통 국가 핵심 기술 분야 명칭 조회 **/
+		SELECT 
+			nth.TECH_ID
+			,(SELECT 
+					this.TECH_NTC_GID 
+				FROM kaits_tech_his this 
+				WHERE 
+					this.TECH_NTC_SHW_YN = 'Y' 
+					AND this.TECH_NTC_USE_YN = 'Y' 
+				ORDER BY this.TECH_NTC_REG DESC, this.TECH_NTC_UPDATE DESC
+				LIMIT 1
+				) AS TECH_NTC_GID
+			,nth.TECH_NAME
+			,nth.TECH_SORT
+		FROM kaits_tech nth
+		WHERE 
+			nth.TECH_SHW_YN ='Y' AND nth.TECH_USE_YN ='Y' 
+		ORDER BY nth.TECH_SORT ASC
+	</select>
+	
+	<select id="haveTech" parameterType="expNctTechVO" resultType="expNctTechVO">
+		/** 공통 로그인한 계정의 기술 분야 권한 조회  **/
+		SELECT 
+			ath.ADM_AUTH_ID
+			,nth.TECH_ID
+			,(SELECT 
+					this.TECH_NTC_GID 
+				FROM kaits_tech_his this 
+				WHERE 
+					this.TECH_NTC_SHW_YN = 'Y' 
+					AND this.TECH_NTC_USE_YN = 'Y' 
+				ORDER BY this.TECH_NTC_REG DESC, this.TECH_NTC_UPDATE DESC
+				LIMIT 1
+				) AS TECH_NTC_GID
+			,nth.TECH_NAME
+			,nth.TECH_SORT
+		FROM kaits_admin_authority ath
+		INNER JOIN kaits_tech nth
+			ON nth.TECH_ID = ath.ADM_AUTH_TECH
+			AND nth.TECH_SHW_YN ='Y' AND nth.TECH_USE_YN ='Y' 
+		WHERE 1=1
+			AND ath.ADM_AUTH_ID = #{admId}
+		ORDER BY nth.TECH_SORT ASC
+	</select>
+	
+	
+	<update id="updateRecStat" parameterType="expRecUpdateVO">
+		/** 공통 리스트 접수 현황  신청서 상태값 라스트 업데이트  **/
+		update nct_app_rec set 
+			NCT_REC_STATUS =  #{nctRecStatus}
+			, NCT_REC_STATUS_LAST = #{nctRecStatusLast}
+			, NCT_REC_STATUS_LAST_ID = #{nctRecStatusLastId}
+		where 1=1
+			and NCT_REC_CODE= #{nctRecCode}
+	</update>
+	
+	<update id="updateSendRec" parameterType="expRecUpdateVO">
+		/** 공통 리스트 접수 현황  신청서 상태값 라스트 업데이트  **/
+		update nct_app_rec set 
+			NCT_REC_EX_CNT = #{nctRecExCnt}
+			,NCT_REC_STATUS =  #{nctRecStatus}
+			, NCT_REC_STATUS_LAST = #{nctRecStatusLast}
+			, NCT_REC_STATUS_LAST_ID = #{nctRecStatusLastId}
+		where 1=1
+			and NCT_REC_CODE= #{nctRecCode}
+	</update>
+	
+	<select id="schCompany" parameterType="expSchComVO" resultType="expSchComVO">
+		/** 전문위원회 - 접수현황 >> 신규 등록 > 대상 기업 조회 (자동 검색 / 셀렉트)   **/
+		SELECT 
+			CPN_ID
+			, CPN_SE_CODE
+			, CPN_S_NO
+			, CPN_B_NO
+			, CPN_NM
+			, CPN_CEO
+			, CPN_B_ZIP
+			, CPN_B_ADD1
+			, CPN_B_ADD2
+			, CPN_B_PHONE1
+			, CPN_B_PHONE2
+			, CPN_B_PHONE3
+			, CPN_B_FAX1
+			, CPN_B_FAX2
+			, CPN_B_FAX3
+			, CPN_DUTY_CODE
+			, CPN_S_ZIP
+			, CPN_S_ADD1
+			, CPN_S_ADD2
+			, CPN_S_PHONE1
+			, CPN_S_PHONE2
+			, CPN_S_PHONE3
+			, CPN_P_NM
+			, CPN_P_DEPT
+			, CPN_P_POSITION
+			, CPN_P_PHONE1
+			, CPN_P_PHONE2
+			, CPN_P_PHONE3
+			, CPN_P_MOBILE1
+			, CPN_P_MOBILE2
+			, CPN_P_MOBILE3
+			, CPN_P_EMAIL
+			, CPN_STAT
+			FROM kaits_com_member
+		WHERE 1=1
+			AND CPN_STAT = '200'
+		<if test="cpnId != null">
+			AND CPN_ID = #{cpnId}
+		</if>
+		<if test="cpnNm != null">
+			AND TRIM(CPN_NM)  LIKE CONCAT('%',trim(#{cpnNm}),'%')
+		</if>
+		ORDER BY CPN_NM ASC
+	</select>
+	<select id="loadTechAreaList" resultType="expNctTechVO">
+		/**
+		 * 검토요청 - 분야 리스트 조회
+		 * ExpertAgendaMapper > getTechItemList
+		 */
+		select
+			kti.TECH_ITEM_ID
+			, kti.TECH_NTC_GID
+			, kti.TECH_ID
+			, kti.TECH_ITEM_NAME
+			, kti.TECH_ITEM_SORT
+			, kti.TECH_ITEM_MEMO
+			, kti.TECH_ITEM_DEL_YN
+			, kti.TECH_ITEM_SHW_YN
+			, kti.TECH_ITEM_REG
+			, kti.TECH_ITEM_REG_ID
+			, kti.TECH_ITEM_UPDATE
+			, kti.TECH_ITEM_UPDATE_ID
+		from kaits_tech_item kti
+		where 1=1
+		<if test="techId != null">
+			and kti.TECH_ID = #{techId}
+		</if>
+	order by kti.TECH_ITEM_SORT
+	</select>
+	<select id="makeNewMetaCode" resultType="String">
+		/**
+		 * 새로운 메타코드 조회
+		 * expMapper > "makeNewMetaCode"
+		 */
+		SELECT CONCAT(DATE_FORMAT(NOW(),'%Y%m%d%H%i%s'),'-',LPAD(IFNULL(MAX(RIGHT(km.NCT_META_CODE,12)),0)+1,2,'0')) AS NCT_META_CODE
+		FROM nct_app_meta km WHERE SUBSTRING(km.NCT_META_CODE,1,12) = DATE_FORMAT(NOW(),'%Y%m%d%H%i%s');
+	</select>
+	
+	<select id="makeNewRecCode" resultType="String">
+		/**
+		 * 새로운 접수 번호 코드 조회
+		 * expMapper > "makeNewRecCode"
+		 */
+		SELECT CONCAT(DATE_FORMAT(NOW(),'%Y-%m'),'-',LPAD(IFNULL(MAX(RIGHT(km.NCT_REC_CODE,4)),0)+1,4,'0')) AS NCT_REC_CODE
+		FROM nct_app_rec km WHERE SUBSTRING(km.NCT_REC_CODE,1,7) = DATE_FORMAT(NOW(),'%Y-%m');
+	</select>
+	
+	<insert id="saveMetaData" parameterType="expMetaVO">
+		/** 신규 메타 데이터 저장  **/
+		INSERT INTO nct_app_meta (
+			NCT_META_CODE
+			,NCT_META_TYPE
+			,NCT_META_REC_YN
+			,NCT_META_ADM_YN
+			,NCT_META_REC_CODE
+			,NCT_META_COM_TYPE
+			,NCT_META_COM_CODE
+			,NCT_META_COM_NO
+			,NCT_META_COM_NM
+			,NCT_META_CEO
+			,NCT_META_BO_ZIP
+			,NCT_META_BO_ADD1
+			,NCT_META_BO_ADD2
+			,NCT_META_BO_PHONE1
+			,NCT_META_BO_PHONE2
+			,NCT_META_BO_PHONE3
+			,NCT_META_SA_ZIP
+			,NCT_META_SA_ADD1
+			,NCT_META_SA_ADD2
+			,NCT_META_SA_PHONE1
+			,NCT_META_SA_PHONE2
+			,NCT_META_SA_PHONE3
+			,NCT_META_PM_NM
+			,NCT_META_PM_DEPT
+			,NCT_META_PM_POSITION
+			,NCT_META_PM_PHONE1
+			,NCT_META_PM_PHONE2
+			,NCT_META_PM_PHONE3
+			,NCT_META_PM_MOBILE1
+			,NCT_META_PM_MOBILE2
+			,NCT_META_PM_MOBILE3
+			,NCT_META_PM_EMAIL
+			,NCT_META_TITLE
+			,NCT_META_TITLE_ETC
+			,NCT_META_TECH_FORM
+			,NCT_META_EX_SALE
+			,NCT_META_EX_S_COM
+			,NCT_META_EX_TRANS
+			,NCT_META_EX_T_COM
+			,NCT_META_EX_ETC
+			,NCT_META_EX_E_COM
+			,NCT_META_EX_DATE
+			,NCT_META_EX_D_COM
+			,NCT_META_TECH_QUA
+			,NCT_META_REASON
+			,NCT_META_LAW01
+			,NCT_META_LAW02
+			,NCT_META_LAW03
+			,NCT_META_REGI_ID
+			,NCT_META_REGI
+			,NCT_META_LAST_ID
+			,NCT_META_LAST
+		) VALUES (
+			#{nctMetaCode}
+			,#{nctMetaType}
+			,#{nctMetaRecYn}
+			,#{nctMetaAdmYn}
+			,#{nctMetaRecCode}
+			,#{nctMetaComType}
+			,#{nctMetaComCode}
+			,#{nctMetaComNo}
+			,#{nctMetaComNm}
+			,#{nctMetaCeo}
+			,#{nctMetaBoZip}
+			,#{nctMetaBoAdd1}
+			,#{nctMetaBoAdd2}
+			,#{nctMetaBoPhone1}
+			,#{nctMetaBoPhone2}
+			,#{nctMetaBoPhone3}
+			,#{nctMetaSaZip}
+			,#{nctMetaSaAdd1}
+			,#{nctMetaSaAdd2}
+			,#{nctMetaSaPhone1}
+			,#{nctMetaSaPhone2}
+			,#{nctMetaSaPhone3}
+			,#{nctMetaPmNm}
+			,#{nctMetaPmDept}
+			,#{nctMetaPmPosition}
+			,#{nctMetaPmPhone1}
+			,#{nctMetaPmPhone2}
+			,#{nctMetaPmPhone3}
+			,#{nctMetaPmMobile1}
+			,#{nctMetaPmMobile2}
+			,#{nctMetaPmMobile3}
+			,#{nctMetaPmEmail}
+			,#{nctMetaTitle}
+			,#{nctMetaTitleEtc}
+			,#{nctMetaTechForm}
+			,#{nctMetaExSale}
+			,#{nctMetaExSCom}
+			,#{nctMetaExTrans}
+			,#{nctMetaExTCom}
+			,#{nctMetaExEtc}
+			,#{nctMetaExECom}
+			,#{nctMetaExDate}
+			,#{nctMetaExDCom}
+			,#{nctMetaTechQua}
+			,#{nctMetaReason}
+			,#{nctMetaLaw01}
+			,#{nctMetaLaw02}
+			,#{nctMetaLaw03}
+			,#{nctMetaRegiId}
+			,#{nctMetaRegi}
+			,#{nctMetaLastId}
+			,#{nctMetaLast}
+		)
+	</insert>
+	<insert id="saveRecData" parameterType="expMetaVO">
+		/** 신규 접수 데이터 저장  **/
+		INSERT INTO nct_app_rec (
+			NCT_REC_CODE
+			,NCT_META_CODE
+			,NCT_REC_RE_YN
+			,NCT_REC_RE_CODE
+			,NCT_REC_EX_CNT
+			,NCT_REC_EX_EN_CNT
+			,NCT_REC_FIX_DATE
+			,NCT_REC_ADM_VIEW
+			,NCT_REC_COM_VIEW
+			,NCT_REC_STATUS
+			,NCT_REC_STATUS_LAST
+			,NCT_REC_STATUS_LAST_ID
+		) VALUES (
+			#{nctRecCode}
+			,#{nctMetaCode}
+			,#{nctRecReYn}
+			,#{nctRecReCode}
+			,'0'
+			,'0'
+			,null
+			,'Y'
+			,'Y'
+			,'REC200'
+			,#{nctRecStatusLast}
+			,#{nctRecStatusLastId}
+		)
+	</insert>
+	<insert id="saveMetaTech" parameterType="expRecTechVO">
+		/** 신규 메타 데이터 > 기술 분야 저장  **/
+		insert into nct_app_meta_tech(
+		        NCT_META_CODE
+		        , NCT_META_TECH_SORT
+		        , TECH_NTC_GID
+		        , TECH_NCT_CODE
+		        , TECH_UNIQ_ID
+		        , NCT_META_TECH_NM
+		) values (
+		        #{nctMetaCode}
+		        , #{nctMetaTechSort}
+		        , #{techNtcGid}
+		        , #{techNctCode}
+		        , #{techUniqId}
+		        , #{nctMetaTechNm}
+		)
+	</insert>
+	<insert id="saveMetaCountry" parameterType="expRecConturyVO">
+		/** 신규 메타 데이터 > 대상국 저장  **/
+		insert into nct_app_meta_contury (
+        		NCT_META_CODE
+		        , NCT_CTY_SORT
+		        , NCT_CTY_CODE
+		        , NCT_CTY_BUYER
+		) values (
+		        #{nctMetaCode}
+		        , #{nctCtySort}
+		        , #{nctCtyCode}
+		        , #{nctCtyBuyer}
+		)
+	</insert>
+	<insert id="insertRecHistory" parameterType="expRecHistoryVO">
+		/** 공통 리스트 접수 현황 히스토리 / 검토의견 저장 처리  **/
+		insert into nct_app_rec_his (
+			NCT_REC_CODE
+			, NCT_REC_HIS_CODE
+			, NCT_REC_STATUS
+			, HIS_AMG_GRUOP
+			, HIS_COMMENT
+			, HIS_REG_ID
+			, HIS_REG_IP
+			, HIS_REG_DT
+		) values (
+			#{nctRecCode}
+			, #{nctRecHisCode}
+			, #{nctRecStatus}
+			, #{hisAmgGruop}
+			, #{hisComment}
+			, #{hisRegId}
+			, #{hisRegIp}
+			, #{hisRegDt}
+		)
+	</insert>
+	
+	<insert id="insertAgdHistory" parameterType="expAgdHistoryVO">
+		/** 공통 리스트 안건 현황 히스토리 insert  **/
+		insert into nct_exp_agenda_his (
+			NCT_AGD_CODE
+			, NCT_AGD_HIS_CODE
+			, NCT_AGD_STATUS
+			, HIS_AMG_GRUOP
+			, HIS_COMMENT
+			, HIS_REG_ID
+			, HIS_REG_IP
+			, HIS_REG_DT
+		) values (
+			#{nctAgdCode}
+			, #{nctAgdHisCode}
+			, #{nctAgdStatus}
+			, #{hisAmgGruop}
+			, #{hisComment}
+			, #{hisRegId}
+			, #{hisRegIp}
+			, #{hisRegDt}
+		)
+	</insert>
+	<insert id="insertNewAgd" parameterType="expAgdListVO">
+		/** 검토 요청 안건  데이터 저장  **/
+		INSERT INTO nct_exp_agenda (
+			NCT_AGD_CODE
+			,NCT_META_CODE
+			,NCT_AGD_RE_YN
+			,NCT_AGD_RE_CODE
+			,NCT_AGD_TECH
+			,NCT_EXP_IDX
+			,NCT_EXP_SORT
+			,NCT_AGD_TITLE
+			,NCT_AGD_TECH_NM
+			,NCT_AGD_FIX_DATE
+			,NCT_AGD_STATUS
+			,NCT_AGD_REG_DATE
+			,NCT_AGD_REG_ID
+			,NCT_AGD_STATUS_LAST
+			,NCT_AGD_STATUS_LAST_ID
+		) VALUES (
+			#{nctAgdCode}
+			,#{nctMetaCode}
+			,'N'
+			,null
+			,#{nctAgdTech}
+			,null
+			,null
+			,null
+			,null
+			,null
+			,#{nctAgdStatus}
+			,#{nctAgdRegDate}
+			,#{nctAgdRegId}
+			,#{nctAgdStatusLast}
+			,#{nctAgdStatusLastId}
+		)
+	</insert>
+	<!-- 리스트 페이지 조회  -->
+	<select id="loadListRecTotal" parameterType="expRecListVO" resultType="expRecListVO">
+		/** 전문위원회 > 접수현황 리스트  > 전체 카운트 조회  **/
+		SELECT
+			rec.NCT_REC_CODE
+		FROM nct_app_rec rec
+		INNER JOIN nct_app_meta ncm 
+			ON ncm.NCT_META_CODE = rec.NCT_META_CODE 
+		INNER JOIN nct_app_meta_tech ncth
+			ON ncth.NCT_META_CODE = rec.NCT_META_CODE 
+			AND ncth.NCT_META_TECH_SORT = 1
+		INNER JOIN kaits_tech kt 
+			ON kt.TECH_ID = ncth.TECH_NCT_CODE
+		INNER JOIN kaits_tech_item kti 
+			ON kti.TECH_NTC_GID = ncth.TECH_NTC_GID
+			AND kti.TECH_ID = ncth.TECH_NCT_CODE
+			AND kti.TECH_ITEM_ID = ncth.TECH_UNIQ_ID
+		where 1=1
+			AND rec.NCT_REC_ADM_VIEW='Y' AND rec.NCT_REC_COM_VIEW='Y' AND rec.NCT_REC_STATUS != 'REC100'
+			<if test="nctRecStatus != null">
+				AND rec.NCT_REC_STATUS = #{nctRecStatus}
+			</if>
+			<if test="admGroup == 'AMG04'">
+			AND rec.NCT_REC_CODE  IN (
+				select distinct krc.NCT_REC_CODE
+				from kaits_admin_authority kaa
+				inner join nct_app_rec_compe krc 
+					on krc.NCT_TECH_CODE = kaa.ADM_AUTH_TECH 
+				where 1=1
+				and kaa.ADM_AUTH_ID = #{admId}
+			)
+			</if>
+	</select>
+	<select id="loadListRecTap" parameterType="expRecListVO" resultType="expTopTabVO">
+		/** 전문위원회 > 접수현황 리스트 [상단 탭 상태값 카운트 ]: 기술안보과, 보호협회, 기밀 센터   **/
+		SELECT
+			rec.NCT_REC_STATUS as TITLE, count(*) as COUNT
+		FROM nct_app_rec rec
+		where 1=1
+			AND rec.NCT_REC_ADM_VIEW='Y' AND rec.NCT_REC_COM_VIEW='Y' AND rec.NCT_REC_STATUS != 'REC100'
+			<if test="admGroup == 'AMG04'">
+			AND rec.NCT_REC_CODE  IN (
+				select distinct krc.NCT_REC_CODE
+				from kaits_admin_authority kaa
+				inner join nct_app_rec_compe krc 
+					on krc.NCT_TECH_CODE = kaa.ADM_AUTH_TECH 
+				where 1=1
+				and kaa.ADM_AUTH_ID = #{admId}
+			)
+			</if>
+		group by rec.NCT_REC_STATUS
+	</select>
+	<select id="loadListRecPage" parameterType="expRecListVO" resultType="expRecListVO">
+		/** 전문위원회 > 접수현황 리스트 : 기술안보과, 보호협회, 기밀 센터   **/
+		SELECT
+			rec.NCT_REC_CODE
+			,rec.NCT_META_CODE
+			,(SELECT COUNT(*) FROM nct_app_meta_tech tcn WHERE tcn.NCT_META_CODE = rec.NCT_META_CODE) AS TECH_COUNT
+			,rec.NCT_REC_RE_YN
+			,rec.NCT_REC_RE_CODE
+			,rec.NCT_REC_EX_CNT
+			,rec.NCT_REC_EX_EN_CNT
+			,rec.NCT_REC_FIX_DATE
+			,rec.NCT_REC_ADM_VIEW
+			,rec.NCT_REC_COM_VIEW
+			,rec.NCT_REC_STATUS
+			,rec.NCT_REC_STATUS_LAST
+			,date_format(rec.NCT_REC_STATUS_LAST, '%Y.%m.%d %k:%i') as NCT_REC_STATUS_LAST_VIEW
+			,rec.NCT_REC_STATUS_LAST_ID
+			,ncm.NCT_META_TYPE
+			,ncm.NCT_META_REC_YN
+			,ncm.NCT_META_ADM_YN
+			,ncm.NCT_META_REC_CODE
+			,ncm.NCT_META_COM_TYPE
+			,ncm.NCT_META_COM_CODE
+			,ncm.NCT_META_COM_NO
+			,ncm.NCT_META_COM_NM
+			,ncm.NCT_META_CEO
+			,ncm.NCT_META_BO_ZIP
+			,ncm.NCT_META_BO_ADD1
+			,ncm.NCT_META_BO_ADD2
+			,ncm.NCT_META_BO_PHONE1
+			,ncm.NCT_META_BO_PHONE2
+			,ncm.NCT_META_BO_PHONE3
+			,ncm.NCT_META_SA_ZIP
+			,ncm.NCT_META_SA_ADD1
+			,ncm.NCT_META_SA_ADD2
+			,ncm.NCT_META_SA_PHONE1
+			,ncm.NCT_META_SA_PHONE2
+			,ncm.NCT_META_SA_PHONE3
+			,ncm.NCT_META_PM_NM
+			,ncm.NCT_META_PM_DEPT
+			,ncm.NCT_META_PM_POSITION
+			,ncm.NCT_META_PM_PHONE1
+			,ncm.NCT_META_PM_PHONE2
+			,ncm.NCT_META_PM_PHONE3
+			,ncm.NCT_META_PM_MOBILE1
+			,ncm.NCT_META_PM_MOBILE2
+			,ncm.NCT_META_PM_MOBILE3
+			,ncm.NCT_META_PM_EMAIL
+			,ncm.NCT_META_TITLE
+			,ncm.NCT_META_REGI_ID
+			,ncm.NCT_META_REGI
+			,date_format(ncm.NCT_META_REGI, '%Y.%m.%d %k:%i') as NCT_META_REGI_VIEW
+			,ncm.NCT_META_LAST_ID
+			,ncm.NCT_META_LAST
+			,date_format(ncm.NCT_META_LAST, '%Y.%m.%d %k:%i') as NCT_META_LAST_VIEW
+			,ncth.NCT_META_TECH_NM 	
+			,kt.TECH_NAME 
+			,kti.TECH_ITEM_NAME 
+		FROM nct_app_rec rec
+		INNER JOIN nct_app_meta ncm 
+			ON ncm.NCT_META_CODE = rec.NCT_META_CODE 
+		INNER JOIN nct_app_meta_tech ncth
+			ON ncth.NCT_META_CODE = rec.NCT_META_CODE 
+			AND ncth.NCT_META_TECH_SORT = 1
+		INNER JOIN kaits_tech kt 
+			ON kt.TECH_ID = ncth.TECH_NCT_CODE
+		INNER JOIN kaits_tech_item kti 
+			ON kti.TECH_NTC_GID = ncth.TECH_NTC_GID
+			AND kti.TECH_ID = ncth.TECH_NCT_CODE
+			AND kti.TECH_ITEM_ID = ncth.TECH_UNIQ_ID
+		where 1=1
+			AND rec.NCT_REC_ADM_VIEW='Y' AND rec.NCT_REC_COM_VIEW='Y' AND rec.NCT_REC_STATUS != 'REC100'
+			<if test="nctRecStatus != null">
+				AND rec.NCT_REC_STATUS = #{nctRecStatus}
+			</if>
+			<if test="admGroup == 'AMG04'">
+			AND rec.NCT_REC_CODE  IN (
+				select distinct krc.NCT_REC_CODE
+				from kaits_admin_authority kaa
+				inner join nct_app_rec_compe krc 
+					on krc.NCT_TECH_CODE = kaa.ADM_AUTH_TECH 
+				where 1=1
+				and kaa.ADM_AUTH_ID = #{admId}
+			)
+			</if>
+		ORDER BY rec.NCT_REC_STATUS = 'REC200' DESC
+			,rec.NCT_REC_STATUS = 'REC300' DESC
+			,rec.NCT_REC_STATUS = 'REC400' DESC
+			,rec.NCT_REC_STATUS = 'REC500' DESC
+			,rec.NCT_REC_STATUS = 'REC600' DESC
+			,rec.NCT_REC_STATUS = 'REC700' DESC
+			,rec.NCT_REC_CODE DESC
+		LIMIT #{pageRows} OFFSET #{startNo}
+	</select>
+	
+	<select id="loadListAgdTotal" parameterType="expAgdListVO" resultType="expAgdListVO">
+		/** 전문위원회 > 안건현황 리스트 : 기술안보과, 보호협회, 기밀 센터   **/
+		SELECT
+			rec.NCT_META_CODE
+		FROM nct_app_rec rec
+		INNER JOIN nct_app_meta ncm 
+			ON ncm.NCT_META_CODE = rec.NCT_META_CODE 
+		INNER JOIN nct_app_meta_tech ncth
+			ON ncth.NCT_META_CODE = rec.NCT_META_CODE 
+			AND ncth.NCT_META_TECH_SORT = 1
+		INNER JOIN kaits_tech kt 
+			ON kt.TECH_ID = ncth.TECH_NCT_CODE
+		INNER JOIN kaits_tech_item kti 
+			ON kti.TECH_NTC_GID = ncth.TECH_NTC_GID
+			AND kti.TECH_ID = ncth.TECH_NCT_CODE
+			AND kti.TECH_ITEM_ID = ncth.TECH_UNIQ_ID
+		where 1=1
+			<if test="admGroup == 'AMG00' || admGroup == 'AMG01' || admGroup == 'AMG02' || admGroup == 'AMG03'">
+				AND rec.NCT_REC_STATUS = 'REC500' 
+			</if>
+			<if test="nctRecStatus != null">
+				AND rec.NCT_REC_STATUS = #{nctRecStatus}
+			</if>
+			<if test="admGroup == 'AMG04'">
+				AND rec.NCT_REC_STATUS = 'REC000' 
+			</if>
+		UNION ALL
+		SELECT
+			agd.NCT_META_CODE
+		FROM nct_exp_agenda agd
+		INNER JOIN nct_app_rec reo 
+			ON reo.NCT_META_CODE = agd.NCT_META_CODE 
+		INNER JOIN nct_app_meta ancm 
+			ON ancm.NCT_META_CODE = agd.NCT_META_CODE 
+		INNER JOIN nct_app_meta_tech ancth
+			ON ancth.NCT_META_CODE = agd.NCT_META_CODE 
+			AND ancth.NCT_META_TECH_SORT = 1
+		INNER JOIN kaits_tech akt 
+			ON akt.TECH_ID = ancth.TECH_NCT_CODE
+		INNER JOIN kaits_tech agdtech 
+			ON agdtech.TECH_ID = agd.NCT_AGD_TECH
+		INNER JOIN kaits_tech_item akti 
+			ON akti.TECH_NTC_GID = ancth.TECH_NTC_GID
+			AND akti.TECH_ID = ancth.TECH_NCT_CODE
+			AND akti.TECH_ITEM_ID = ancth.TECH_UNIQ_ID
+		where 1=1
+			<if test="nctAgdStatus != null">
+				AND agd.NCT_AGD_STATUS = #{nctAgdStatus}
+			</if>
+			<if test="admGroup == 'AMG04'">
+			and agd.NCT_AGD_TECH IN (
+				select kaa.ADM_AUTH_TECH
+				from kaits_admin_authority kaa
+				where 1=1
+					and kaa.ADM_AUTH_ID = #{admId}
+			)	
+			</if>	
+		
+	</select>
+	<select id="loadListAgdTap" parameterType="expListTabVO" resultType="expListTabVO">
+		/** 전문위원회 > 접수현황 리스트 [상단 탭 상태값 카운트 ]: 기술안보과, 보호협회, 기밀 센터   **/
+		SELECT
+			rec.NCT_REC_STATUS as TITLE, count(*) as COUNT
+		FROM nct_app_rec rec
+		where 1=1
+		<if test="admGroup == 'AMG00' || admGroup == 'AMG01' || admGroup == 'AMG02' || admGroup == 'AMG03'">
+			AND rec.NCT_REC_STATUS = 'REC500' 
+		</if>
+		<if test="admGroup == 'AMG04'">
+			AND rec.NCT_REC_STATUS = 'REC000' 
+		</if>
+		UNION ALL
+		SELECT 
+			agd.NCT_AGD_STATUS AS title
+			,COUNT(agd.NCT_AGD_STATUS) as COUNT	
+		FROM nct_exp_agenda agd
+		WHERE 1=1
+		<if test="admGroup == 'AMG04'">
+		and agd.NCT_AGD_TECH IN (
+			select kaa.ADM_AUTH_TECH
+			from kaits_admin_authority kaa
+			where 1=1
+				and kaa.ADM_AUTH_ID = #{admId}
+		)	
+		</if>
+		GROUP BY agd.NCT_AGD_STATUS 
+	</select>
+	<select id="loadListAgdPage" parameterType="expAgdListVO" resultType="expAgdListVO">
+		/** 전문위원회 > 안건현황 리스트 : 기술안보과, 보호협회, 기밀 센터   **/
+		SELECT
+			'0' AS SORT_TYPE
+			,rec.NCT_REC_CODE
+			,NULL AS NCT_AGD_CODE
+			,rec.NCT_META_CODE
+			,(SELECT COUNT(*) FROM nct_app_meta_tech tcn WHERE tcn.NCT_META_CODE = rec.NCT_META_CODE) AS TECH_COUNT
+			,rec.NCT_REC_RE_YN
+			,rec.NCT_REC_RE_CODE
+			,rec.NCT_REC_EX_CNT
+			,rec.NCT_REC_EX_EN_CNT
+			,NULL AS NCT_AGD_RE_YN
+			,NULL AS NCT_AGD_RE_CODE
+			,NULL AS NCT_AGD_TECH
+			,NULL AS NCT_AGD_TECH_NM
+			,NULL AS NCT_EXP_IDX
+			,NULL AS NCT_EXP_SORT
+			,NULL AS NCT_AGD_TITLE
+			,NULL AS NCT_AGD_TECH_NM
+			,NULL AS NCT_AGD_FIX_DATE
+			,NULL AS NCT_AGD_FIX_DATE_VIEW
+			,NULL AS NCT_AGD_STATUS
+			,NULL AS NCT_AGD_REG_ID
+			,NULL AS NCT_AGD_REG_DATE
+			,NULL AS NCT_AGD_REG_DATE_VIEW
+			,NULL AS NCT_AGD_STATUS_LAST
+			,NULL AS NCT_AGD_STATUS_LAST_VIEW
+			,NULL AS NCT_AGD_STATUS_LAST_ID
+			,rec.NCT_REC_FIX_DATE
+			,date_format(rec.NCT_REC_FIX_DATE, '%Y.%m.%d %k:%i') as NCT_REC_FIX_DATE_VIEW
+			,rec.NCT_REC_ADM_VIEW
+			,rec.NCT_REC_COM_VIEW
+			,rec.NCT_REC_STATUS
+			,rec.NCT_REC_STATUS_LAST
+			,date_format(rec.NCT_REC_STATUS_LAST, '%Y.%m.%d %k:%i') as NCT_REC_STATUS_LAST_VIEW
+			,rec.NCT_REC_STATUS_LAST_ID
+			,ncm.NCT_META_TYPE
+			,ncm.NCT_META_REC_YN
+			,ncm.NCT_META_ADM_YN
+			,ncm.NCT_META_REC_CODE
+			,ncm.NCT_META_COM_TYPE
+			,ncm.NCT_META_COM_CODE
+			,ncm.NCT_META_COM_NO
+			,ncm.NCT_META_COM_NM
+			,ncm.NCT_META_CEO
+			,ncm.NCT_META_BO_ZIP
+			,ncm.NCT_META_BO_ADD1
+			,ncm.NCT_META_BO_ADD2
+			,ncm.NCT_META_BO_PHONE1
+			,ncm.NCT_META_BO_PHONE2
+			,ncm.NCT_META_BO_PHONE3
+			,ncm.NCT_META_SA_ZIP
+			,ncm.NCT_META_SA_ADD1
+			,ncm.NCT_META_SA_ADD2
+			,ncm.NCT_META_SA_PHONE1
+			,ncm.NCT_META_SA_PHONE2
+			,ncm.NCT_META_SA_PHONE3
+			,ncm.NCT_META_PM_NM
+			,ncm.NCT_META_PM_DEPT
+			,ncm.NCT_META_PM_POSITION
+			,ncm.NCT_META_PM_PHONE1
+			,ncm.NCT_META_PM_PHONE2
+			,ncm.NCT_META_PM_PHONE3
+			,ncm.NCT_META_PM_MOBILE1
+			,ncm.NCT_META_PM_MOBILE2
+			,ncm.NCT_META_PM_MOBILE3
+			,ncm.NCT_META_PM_EMAIL
+			,ncm.NCT_META_TITLE
+			,ncm.NCT_META_TITLE_ETC
+			,ncm.NCT_META_REGI_ID
+			,ncm.NCT_META_REGI
+			,date_format(ncm.NCT_META_REGI, '%Y.%m.%d %k:%i') as NCT_META_REGI_VIEW
+			,ncm.NCT_META_LAST_ID
+			,ncm.NCT_META_LAST
+			,date_format(ncm.NCT_META_LAST, '%Y.%m.%d %k:%i') as NCT_META_LAST_VIEW
+			,ncth.NCT_META_TECH_NM 
+			,kt.TECH_NAME 
+			,kti.TECH_ITEM_NAME
+ 		FROM nct_app_rec rec
+		INNER JOIN nct_app_meta ncm 
+			ON ncm.NCT_META_CODE = rec.NCT_META_CODE 
+		INNER JOIN nct_app_meta_tech ncth
+			ON ncth.NCT_META_CODE = rec.NCT_META_CODE 
+			AND ncth.NCT_META_TECH_SORT = 1
+		INNER JOIN kaits_tech kt 
+			ON kt.TECH_ID = ncth.TECH_NCT_CODE
+		INNER JOIN kaits_tech_item kti 
+			ON kti.TECH_NTC_GID = ncth.TECH_NTC_GID
+			AND kti.TECH_ID = ncth.TECH_NCT_CODE
+			AND kti.TECH_ITEM_ID = ncth.TECH_UNIQ_ID
+		where 1=1
+			<if test="admGroup == 'AMG00' || admGroup == 'AMG01' || admGroup == 'AMG02' || admGroup == 'AMG03'">
+				AND rec.NCT_REC_STATUS = 'REC500' 
+			</if>
+			<if test="nctRecStatus != null">
+				AND rec.NCT_REC_STATUS = #{nctRecStatus}
+			</if>
+			<if test="admGroup == 'AMG04'">
+				AND rec.NCT_REC_STATUS = 'REC000' 
+			</if>
+		UNION ALL
+		SELECT
+			'1' AS SORT_TYPE
+			,reo.NCT_REC_CODE
+			,agd.NCT_AGD_CODE
+			,agd.NCT_META_CODE
+			,(SELECT COUNT(*) FROM nct_app_meta_tech tcn WHERE tcn.NCT_META_CODE = agd.NCT_META_CODE) AS TECH_COUNT
+			,NULL AS NCT_REC_RE_YN
+			,NULL AS NCT_REC_RE_CODE
+			,NULL AS NCT_REC_EX_CNT
+			,NULL AS NCT_REC_EX_EN_CNT
+			,agd.NCT_AGD_RE_YN
+			,agd.NCT_AGD_RE_CODE
+			,agd.NCT_AGD_TECH
+			,agdtech.TECH_NAME AS NCT_AGD_TECH_NM
+			,agd.NCT_EXP_IDX
+			,agd.NCT_EXP_SORT
+			,agd.NCT_AGD_TITLE
+			,agd.NCT_AGD_TECH_NM
+			,agd.NCT_AGD_FIX_DATE
+			,date_format(agd.NCT_AGD_FIX_DATE, '%Y.%m.%d %k:%i') as NCT_AGD_FIX_DATE_VIEW
+			,agd.NCT_AGD_STATUS
+			,agd.NCT_AGD_REG_ID
+			,agd.NCT_AGD_REG_DATE
+			,date_format(agd.NCT_AGD_REG_DATE, '%Y.%m.%d %k:%i') as NCT_AGD_REG_DATE_VIEW
+			,agd.NCT_AGD_STATUS_LAST
+			,date_format(agd.NCT_AGD_STATUS_LAST, '%Y.%m.%d %k:%i') as NCT_AGD_STATUS_LAST_VIEW
+			,agd.NCT_AGD_STATUS_LAST_ID
+			,NULL AS NCT_REC_FIX_DATE
+			,NULL AS NCT_REC_FIX_DATE_VIEW
+			,NULL AS NCT_REC_ADM_VIEW
+			,NULL AS NCT_REC_COM_VIEW
+			,NULL AS NCT_REC_STATUS
+			,NULL AS NCT_REC_STATUS_LAST
+			,NULL AS REC_STATUS_LAST_VIEW
+			,NULL AS NCT_REC_STATUS_LAST_ID
+			,ancm.NCT_META_TYPE
+			,ancm.NCT_META_REC_YN
+			,ancm.NCT_META_ADM_YN
+			,ancm.NCT_META_REC_CODE
+			,ancm.NCT_META_COM_TYPE
+			,ancm.NCT_META_COM_CODE
+			,ancm.NCT_META_COM_NO
+			,ancm.NCT_META_COM_NM
+			,ancm.NCT_META_CEO
+			,ancm.NCT_META_BO_ZIP
+			,ancm.NCT_META_BO_ADD1
+			,ancm.NCT_META_BO_ADD2
+			,ancm.NCT_META_BO_PHONE1
+			,ancm.NCT_META_BO_PHONE2
+			,ancm.NCT_META_BO_PHONE3
+			,ancm.NCT_META_SA_ZIP
+			,ancm.NCT_META_SA_ADD1
+			,ancm.NCT_META_SA_ADD2
+			,ancm.NCT_META_SA_PHONE1
+			,ancm.NCT_META_SA_PHONE2
+			,ancm.NCT_META_SA_PHONE3
+			,ancm.NCT_META_PM_NM
+			,ancm.NCT_META_PM_DEPT
+			,ancm.NCT_META_PM_POSITION
+			,ancm.NCT_META_PM_PHONE1
+			,ancm.NCT_META_PM_PHONE2
+			,ancm.NCT_META_PM_PHONE3
+			,ancm.NCT_META_PM_MOBILE1
+			,ancm.NCT_META_PM_MOBILE2
+			,ancm.NCT_META_PM_MOBILE3
+			,ancm.NCT_META_PM_EMAIL
+			,ancm.NCT_META_TITLE
+			,ancm.NCT_META_TITLE_ETC
+			,ancm.NCT_META_REGI_ID
+			,ancm.NCT_META_REGI
+			,date_format(ancm.NCT_META_REGI, '%Y.%m.%d %k:%i') as NCT_META_REGI_VIEW
+			,ancm.NCT_META_LAST_ID
+			,ancm.NCT_META_LAST
+			,date_format(ancm.NCT_META_LAST, '%Y.%m.%d %k:%i') as NCT_META_LAST_VIEW
+			,ancth.NCT_META_TECH_NM 
+			,akt.TECH_NAME 
+			,akti.TECH_ITEM_NAME 
+		FROM nct_exp_agenda agd
+		INNER JOIN nct_app_rec reo 
+			ON reo.NCT_META_CODE = agd.NCT_META_CODE 
+		INNER JOIN nct_app_meta ancm 
+			ON ancm.NCT_META_CODE = agd.NCT_META_CODE 
+		INNER JOIN nct_app_meta_tech ancth
+			ON ancth.NCT_META_CODE = agd.NCT_META_CODE 
+			AND ancth.NCT_META_TECH_SORT = 1
+		INNER JOIN kaits_tech akt 
+			ON akt.TECH_ID = ancth.TECH_NCT_CODE
+		INNER JOIN kaits_tech agdtech 
+			ON agdtech.TECH_ID = agd.NCT_AGD_TECH
+		INNER JOIN kaits_tech_item akti 
+			ON akti.TECH_NTC_GID = ancth.TECH_NTC_GID
+			AND akti.TECH_ID = ancth.TECH_NCT_CODE
+			AND akti.TECH_ITEM_ID = ancth.TECH_UNIQ_ID
+		where 1=1
+			<if test="nctAgdStatus != null">
+				AND agd.NCT_AGD_STATUS = #{nctAgdStatus}
+			</if>
+			<if test="admGroup == 'AMG04'">
+			and agd.NCT_AGD_TECH IN (
+				select kaa.ADM_AUTH_TECH
+				from kaits_admin_authority kaa
+				where 1=1
+					and kaa.ADM_AUTH_ID = #{admId}
+			)	
+			</if>	
+		ORDER BY SORT_TYPE ASC, NCT_REC_CODE DESC
+		LIMIT #{pageRows} OFFSET #{startNo}
+	</select>
+	<select id="loadListRdyTotal" parameterType="expAgdListVO" resultType="expAgdListVO">
+		/** 전문위원회 > 검토준비중 리스트 : 기술안보과, 보호협회, 기밀 센터   **/
+		SELECT
+			agd.NCT_META_CODE
+		FROM nct_exp_agenda agd
+		INNER JOIN nct_app_rec reo 
+			ON reo.NCT_META_CODE = agd.NCT_META_CODE 
+		INNER JOIN nct_app_meta ancm 
+			ON ancm.NCT_META_CODE = agd.NCT_META_CODE 
+		INNER JOIN nct_app_meta_tech ancth
+			ON ancth.NCT_META_CODE = agd.NCT_META_CODE 
+			AND ancth.NCT_META_TECH_SORT = 1
+		INNER JOIN kaits_tech akt 
+			ON akt.TECH_ID = ancth.TECH_NCT_CODE
+		INNER JOIN kaits_tech agdtech 
+			ON agdtech.TECH_ID = agd.NCT_AGD_TECH
+		INNER JOIN kaits_tech_item akti 
+			ON akti.TECH_NTC_GID = ancth.TECH_NTC_GID
+			AND akti.TECH_ID = ancth.TECH_NCT_CODE
+			AND akti.TECH_ITEM_ID = ancth.TECH_UNIQ_ID
+		where 1=1
+			and agd.NCT_AGD_STATUS = 'AGD100'
+			<if test="admGroup == 'AMG04'">
+			and agd.NCT_AGD_TECH IN (
+				select kaa.ADM_AUTH_TECH
+				from kaits_admin_authority kaa
+				where 1=1
+					and kaa.ADM_AUTH_ID = #{admId}
+			)	
+			</if>	
+	</select>
+	<select id="loadListRdyTap" parameterType="expListTabVO" resultType="expListTabVO">
+		/** 전문위원회 > 접수현황 리스트 [상단 탭 상태값 카운트 ]: 기술안보과, 보호협회, 기밀 센터   **/
+		SELECT 
+			agd.NCT_AGD_STATUS AS title
+			,COUNT(agd.NCT_AGD_STATUS) as COUNT	
+		FROM nct_exp_agenda agd
+		WHERE 1=1
+		and agd.NCT_AGD_STATUS = 'AGD100'
+		<if test="admGroup == 'AMG04'">
+		and agd.NCT_AGD_TECH IN (
+			select kaa.ADM_AUTH_TECH
+			from kaits_admin_authority kaa
+			where 1=1
+				and kaa.ADM_AUTH_ID = #{admId}
+		)	
+		</if>
+		GROUP BY agd.NCT_AGD_STATUS 
+	</select>
+	<select id="loadListRdyPage" parameterType="expAgdListVO" resultType="expAgdListVO">
+		/** 전문위원회 > 검토준비중 리스트 : 기술안보과, 보호협회, 기밀 센터   **/
+		SELECT
+			'1' AS SORT_TYPE
+			,reo.NCT_REC_CODE
+			,agd.NCT_AGD_CODE
+			,agd.NCT_META_CODE
+			,(SELECT COUNT(*) FROM nct_app_meta_tech tcn WHERE tcn.NCT_META_CODE = agd.NCT_META_CODE) AS TECH_COUNT
+			,agd.NCT_AGD_RE_YN
+			,agd.NCT_AGD_RE_CODE
+			,agd.NCT_AGD_TECH
+			,agdtech.TECH_NAME AS NCT_AGD_TECH_NM
+			,agd.NCT_EXP_IDX
+			,agd.NCT_EXP_SORT
+			,agd.NCT_AGD_TITLE
+			,agd.NCT_AGD_TECH_NM
+			,agd.NCT_AGD_FIX_DATE
+			,date_format(agd.NCT_AGD_FIX_DATE, '%Y.%m.%d %k:%i') as NCT_AGD_FIX_DATE_VIEW
+			,agd.NCT_AGD_STATUS
+			,agd.NCT_AGD_REG_ID
+			,agd.NCT_AGD_REG_DATE
+			,date_format(agd.NCT_AGD_REG_DATE, '%Y.%m.%d %k:%i') as NCT_AGD_REG_DATE_VIEW
+			,agd.NCT_AGD_STATUS_LAST
+			,date_format(agd.NCT_AGD_STATUS_LAST, '%Y.%m.%d %k:%i') as NCT_AGD_STATUS_LAST_VIEW
+			,agd.NCT_AGD_STATUS_LAST_ID
+			,ancm.NCT_META_TYPE
+			,ancm.NCT_META_REC_YN
+			,ancm.NCT_META_ADM_YN
+			,ancm.NCT_META_REC_CODE
+			,ancm.NCT_META_COM_TYPE
+			,ancm.NCT_META_COM_CODE
+			,ancm.NCT_META_COM_NO
+			,ancm.NCT_META_COM_NM
+			,ancm.NCT_META_CEO
+			,ancm.NCT_META_BO_ZIP
+			,ancm.NCT_META_BO_ADD1
+			,ancm.NCT_META_BO_ADD2
+			,ancm.NCT_META_BO_PHONE1
+			,ancm.NCT_META_BO_PHONE2
+			,ancm.NCT_META_BO_PHONE3
+			,ancm.NCT_META_SA_ZIP
+			,ancm.NCT_META_SA_ADD1
+			,ancm.NCT_META_SA_ADD2
+			,ancm.NCT_META_SA_PHONE1
+			,ancm.NCT_META_SA_PHONE2
+			,ancm.NCT_META_SA_PHONE3
+			,ancm.NCT_META_PM_NM
+			,ancm.NCT_META_PM_DEPT
+			,ancm.NCT_META_PM_POSITION
+			,ancm.NCT_META_PM_PHONE1
+			,ancm.NCT_META_PM_PHONE2
+			,ancm.NCT_META_PM_PHONE3
+			,ancm.NCT_META_PM_MOBILE1
+			,ancm.NCT_META_PM_MOBILE2
+			,ancm.NCT_META_PM_MOBILE3
+			,ancm.NCT_META_PM_EMAIL
+			,ancm.NCT_META_TITLE
+			,ancm.NCT_META_TITLE_ETC
+			,ancm.NCT_META_REGI_ID
+			,ancm.NCT_META_REGI
+			,date_format(ancm.NCT_META_REGI, '%Y.%m.%d %k:%i') as NCT_META_REGI_VIEW
+			,ancm.NCT_META_LAST_ID
+			,ancm.NCT_META_LAST
+			,date_format(ancm.NCT_META_LAST, '%Y.%m.%d %k:%i') as NCT_META_LAST_VIEW
+			,ancth.NCT_META_TECH_NM 
+			,akt.TECH_NAME 
+			,akti.TECH_ITEM_NAME 
+		FROM nct_exp_agenda agd
+		INNER JOIN nct_app_rec reo 
+			ON reo.NCT_META_CODE = agd.NCT_META_CODE 
+		INNER JOIN nct_app_meta ancm 
+			ON ancm.NCT_META_CODE = agd.NCT_META_CODE 
+		INNER JOIN nct_app_meta_tech ancth
+			ON ancth.NCT_META_CODE = agd.NCT_META_CODE 
+			AND ancth.NCT_META_TECH_SORT = 1
+		INNER JOIN kaits_tech akt 
+			ON akt.TECH_ID = ancth.TECH_NCT_CODE
+		INNER JOIN kaits_tech agdtech 
+			ON agdtech.TECH_ID = agd.NCT_AGD_TECH
+		INNER JOIN kaits_tech_item akti 
+			ON akti.TECH_NTC_GID = ancth.TECH_NTC_GID
+			AND akti.TECH_ID = ancth.TECH_NCT_CODE
+			AND akti.TECH_ITEM_ID = ancth.TECH_UNIQ_ID
+		where 1=1
+			and agd.NCT_AGD_STATUS = 'AGD100'
+			<if test="admGroup == 'AMG04'">
+			and agd.NCT_AGD_TECH IN (
+				select kaa.ADM_AUTH_TECH
+				from kaits_admin_authority kaa
+				where 1=1
+					and kaa.ADM_AUTH_ID = #{admId}
+			)	
+			</if>	
+		ORDER BY SORT_TYPE ASC, NCT_REC_CODE DESC
+		LIMIT #{pageRows} OFFSET #{startNo}
+	</select>
+	
+	<select id="loadListAddAgd" parameterType="expAgdListVO" resultType="expAgdListVO">
+		/** 전문위원회 > 검토 준비중 리스트 > 위원회 구성 > 안건 추가 팝업 > 안건 조회      **/
+		SELECT
+			reo.NCT_REC_CODE
+			,agd.NCT_AGD_CODE
+			,agd.NCT_META_CODE
+			,(SELECT COUNT(*) FROM nct_app_meta_tech tcn WHERE tcn.NCT_META_CODE = agd.NCT_META_CODE) AS TECH_COUNT
+			,agd.NCT_AGD_RE_YN
+			,agd.NCT_AGD_RE_CODE
+			,agd.NCT_AGD_TECH
+			,agdtech.TECH_NAME AS NCT_AGD_TECH_NM
+			,agd.NCT_EXP_IDX
+			,agd.NCT_EXP_SORT
+			,agd.NCT_AGD_TITLE
+			,agd.NCT_AGD_TECH_NM
+			,agd.NCT_AGD_FIX_DATE
+			,date_format(agd.NCT_AGD_FIX_DATE, '%Y.%m.%d %k:%i') as NCT_AGD_FIX_DATE_VIEW
+			,agd.NCT_AGD_STATUS
+			,agd.NCT_AGD_REG_ID
+			,agd.NCT_AGD_REG_DATE
+			,date_format(agd.NCT_AGD_REG_DATE, '%Y.%m.%d %k:%i') as NCT_AGD_REG_DATE_VIEW
+			,agd.NCT_AGD_STATUS_LAST
+			,date_format(agd.NCT_AGD_STATUS_LAST, '%Y.%m.%d %k:%i') as NCT_AGD_STATUS_LAST_VIEW
+			,agd.NCT_AGD_STATUS_LAST_ID
+			,ancm.NCT_META_TYPE
+			,ancm.NCT_META_REC_YN
+			,ancm.NCT_META_ADM_YN
+			,ancm.NCT_META_REC_CODE
+			,ancm.NCT_META_COM_TYPE
+			,ancm.NCT_META_COM_CODE
+			,ancm.NCT_META_COM_NO
+			,ancm.NCT_META_COM_NM
+			,ancm.NCT_META_CEO
+			,ancm.NCT_META_BO_ZIP
+			,ancm.NCT_META_BO_ADD1
+			,ancm.NCT_META_BO_ADD2
+			,ancm.NCT_META_BO_PHONE1
+			,ancm.NCT_META_BO_PHONE2
+			,ancm.NCT_META_BO_PHONE3
+			,ancm.NCT_META_SA_ZIP
+			,ancm.NCT_META_SA_ADD1
+			,ancm.NCT_META_SA_ADD2
+			,ancm.NCT_META_SA_PHONE1
+			,ancm.NCT_META_SA_PHONE2
+			,ancm.NCT_META_SA_PHONE3
+			,ancm.NCT_META_PM_NM
+			,ancm.NCT_META_PM_DEPT
+			,ancm.NCT_META_PM_POSITION
+			,ancm.NCT_META_PM_PHONE1
+			,ancm.NCT_META_PM_PHONE2
+			,ancm.NCT_META_PM_PHONE3
+			,ancm.NCT_META_PM_MOBILE1
+			,ancm.NCT_META_PM_MOBILE2
+			,ancm.NCT_META_PM_MOBILE3
+			,ancm.NCT_META_PM_EMAIL
+			,ancm.NCT_META_TITLE
+			,ancm.NCT_META_TITLE_ETC
+			,ancm.NCT_META_REGI_ID
+			,ancm.NCT_META_REGI
+			,date_format(ancm.NCT_META_REGI, '%Y.%m.%d %k:%i') as NCT_META_REGI_VIEW
+			,ancm.NCT_META_LAST_ID
+			,ancm.NCT_META_LAST
+			,date_format(ancm.NCT_META_LAST, '%Y.%m.%d %k:%i') as NCT_META_LAST_VIEW
+			,ancth.NCT_META_TECH_NM 
+			,akt.TECH_NAME 
+			,akti.TECH_ITEM_NAME 
+		FROM nct_exp_agenda agd
+		INNER JOIN nct_app_rec reo 
+			ON reo.NCT_META_CODE = agd.NCT_META_CODE 
+		INNER JOIN nct_app_meta ancm 
+			ON ancm.NCT_META_CODE = agd.NCT_META_CODE 
+		INNER JOIN nct_app_meta_tech ancth
+			ON ancth.NCT_META_CODE = agd.NCT_META_CODE 
+			AND ancth.NCT_META_TECH_SORT = 1
+		INNER JOIN kaits_tech akt 
+			ON akt.TECH_ID = ancth.TECH_NCT_CODE
+		INNER JOIN kaits_tech agdtech 
+			ON agdtech.TECH_ID = agd.NCT_AGD_TECH
+		INNER JOIN kaits_tech_item akti 
+			ON akti.TECH_NTC_GID = ancth.TECH_NTC_GID
+			AND akti.TECH_ID = ancth.TECH_NCT_CODE
+			AND akti.TECH_ITEM_ID = ancth.TECH_UNIQ_ID
+		where 1=1
+			and agd.NCT_AGD_STATUS = 'AGD100'
+			and agd.NCT_AGD_TECH = #{nctAgdTech}
+		ORDER BY NCT_REC_CODE DESC
+	</select>
+	
+	<select id="loadViewRecMeta" parameterType="expMetaVO" resultType="expMetaVO">
+		/** 전문위원회 > 공통 : 신청서 + 메타 상세 조회   **/
+		SELECT
+			rec.NCT_REC_CODE
+			,rec.NCT_META_CODE
+			,rec.NCT_REC_RE_YN
+			,rec.NCT_REC_RE_CODE
+			,rec.NCT_REC_EX_CNT
+			,rec.NCT_REC_EX_EN_CNT
+			,rec.NCT_REC_FIX_DATE
+			,date_format(rec.NCT_REC_FIX_DATE, '%Y.%m.%d %k:%i') as NCT_REC_FIX_DATE_VIEW
+			,rec.NCT_REC_ADM_VIEW
+			,rec.NCT_REC_COM_VIEW
+			,rec.NCT_REC_STATUS
+			,rec.NCT_REC_STATUS_LAST
+			,date_format(rec.NCT_REC_STATUS_LAST, '%Y.%m.%d %k:%i') as NCT_REC_STATUS_LAST_VIEW
+			,rec.NCT_REC_STATUS_LAST_ID
+			,ncm.NCT_META_TYPE
+			,ncm.NCT_META_REC_YN
+			,ncm.NCT_META_ADM_YN
+			,ncm.NCT_META_REC_CODE
+			,ncm.NCT_META_COM_TYPE
+			,ncm.NCT_META_COM_CODE
+			,ncm.NCT_META_COM_NO
+			,ncm.NCT_META_COM_NM
+			,ncm.NCT_META_CEO
+			,ncm.NCT_META_BO_ZIP
+			,ncm.NCT_META_BO_ADD1
+			,ncm.NCT_META_BO_ADD2
+			,ncm.NCT_META_BO_PHONE1
+			,ncm.NCT_META_BO_PHONE2
+			,ncm.NCT_META_BO_PHONE3
+			,ncm.NCT_META_SA_ZIP
+			,ncm.NCT_META_SA_ADD1
+			,ncm.NCT_META_SA_ADD2
+			,ncm.NCT_META_SA_PHONE1
+			,ncm.NCT_META_SA_PHONE2
+			,ncm.NCT_META_SA_PHONE3
+			,ncm.NCT_META_PM_NM
+			,ncm.NCT_META_PM_DEPT
+			,ncm.NCT_META_PM_POSITION
+			,ncm.NCT_META_PM_PHONE1
+			,ncm.NCT_META_PM_PHONE2
+			,ncm.NCT_META_PM_PHONE3
+			,ncm.NCT_META_PM_MOBILE1
+			,ncm.NCT_META_PM_MOBILE2
+			,ncm.NCT_META_PM_MOBILE3
+			,ncm.NCT_META_PM_EMAIL
+			,ncm.NCT_META_TITLE
+			,ncm.NCT_META_TECH_FORM
+			,ncm.NCT_META_EX_SALE
+			,ncm.NCT_META_EX_S_COM
+			,ncm.NCT_META_EX_TRANS
+			,ncm.NCT_META_EX_T_COM
+			,ncm.NCT_META_EX_ETC
+			,ncm.NCT_META_EX_E_COM
+			,ncm.NCT_META_EX_DATE
+			,date_format(ncm.NCT_META_EX_DATE, '%Y.%m.%d') as NCT_META_EX_DATE_VIEW
+			,ncm.NCT_META_EX_D_COM
+			,ncm.NCT_META_TECH_QUA
+			,ncm.NCT_META_REASON
+			,ncm.NCT_META_LAW01
+			,ncm.NCT_META_LAW02
+			,ncm.NCT_META_LAW03
+			,ncm.NCT_META_REGI_ID
+			,ncm.NCT_META_REGI
+			,date_format(ncm.NCT_META_REGI, '%Y.%m.%d %k:%i') as NCT_META_REGI_VIEW
+			,ncm.NCT_META_LAST_ID
+			,ncm.NCT_META_LAST
+			,date_format(ncm.NCT_META_LAST, '%Y.%m.%d %k:%i') as NCT_META_LAST_VIEW
+		FROM nct_app_rec rec
+		INNER JOIN nct_app_meta ncm 
+				ON ncm.NCT_META_CODE = rec.NCT_META_CODE 
+		WHERE 1=1
+			AND rec.NCT_REC_CODE = #{nctRecCode}
+	</select>
+	
+	<select id="loadViewAgdMeta" parameterType="expMetaVO" resultType="expMetaVO">
+		/** 전문위원회 > 공통 : 신청서 + 메타 상세 조회   **/
+		SELECT
+			agd.NCT_AGD_CODE
+			,agd.NCT_META_CODE
+			,agd.NCT_AGD_RE_YN
+			,agd.NCT_AGD_RE_CODE
+			,agd.NCT_AGD_TECH
+			,agd.NCT_EXP_IDX
+			,agd.NCT_EXP_SORT
+			,agd.NCT_AGD_TITLE
+			,agd.NCT_AGD_TECH_NM
+			,agd.NCT_AGD_FIX_DATE
+			,date_format(agd.NCT_AGD_FIX_DATE, '%Y.%m.%d %k:%i') as NCT_AGD_FIX_DATE_VIEW
+			,agd.NCT_AGD_STATUS
+			,agd.NCT_AGD_STATUS_LAST
+			,date_format(agd.NCT_AGD_STATUS_LAST, '%Y.%m.%d %k:%i') as NCT_AGD_STATUS_LAST_VIEW
+			,agd.NCT_AGD_STATUS_LAST_ID
+			
+			,ncm.NCT_META_TYPE
+			,ncm.NCT_META_REC_YN
+			,ncm.NCT_META_ADM_YN
+			,ncm.NCT_META_REC_CODE
+			,ncm.NCT_META_COM_TYPE
+			,ncm.NCT_META_COM_CODE
+			,ncm.NCT_META_COM_NO
+			,ncm.NCT_META_COM_NM
+			,ncm.NCT_META_CEO
+			,ncm.NCT_META_BO_ZIP
+			,ncm.NCT_META_BO_ADD1
+			,ncm.NCT_META_BO_ADD2
+			,ncm.NCT_META_BO_PHONE1
+			,ncm.NCT_META_BO_PHONE2
+			,ncm.NCT_META_BO_PHONE3
+			,ncm.NCT_META_SA_ZIP
+			,ncm.NCT_META_SA_ADD1
+			,ncm.NCT_META_SA_ADD2
+			,ncm.NCT_META_SA_PHONE1
+			,ncm.NCT_META_SA_PHONE2
+			,ncm.NCT_META_SA_PHONE3
+			,ncm.NCT_META_PM_NM
+			,ncm.NCT_META_PM_DEPT
+			,ncm.NCT_META_PM_POSITION
+			,ncm.NCT_META_PM_PHONE1
+			,ncm.NCT_META_PM_PHONE2
+			,ncm.NCT_META_PM_PHONE3
+			,ncm.NCT_META_PM_MOBILE1
+			,ncm.NCT_META_PM_MOBILE2
+			,ncm.NCT_META_PM_MOBILE3
+			,ncm.NCT_META_PM_EMAIL
+			,ncm.NCT_META_TITLE
+			,ncm.NCT_META_TECH_FORM
+			,ncm.NCT_META_EX_SALE
+			,ncm.NCT_META_EX_S_COM
+			,ncm.NCT_META_EX_TRANS
+			,ncm.NCT_META_EX_T_COM
+			,ncm.NCT_META_EX_ETC
+			,ncm.NCT_META_EX_E_COM
+			,ncm.NCT_META_EX_DATE
+			,date_format(ncm.NCT_META_EX_DATE, '%Y.%m.%d') as NCT_META_EX_DATE_VIEW
+			,ncm.NCT_META_EX_D_COM
+			,ncm.NCT_META_TECH_QUA
+			,ncm.NCT_META_REASON
+			,ncm.NCT_META_LAW01
+			,ncm.NCT_META_LAW02
+			,ncm.NCT_META_LAW03
+			,ncm.NCT_META_REGI_ID
+			,ncm.NCT_META_REGI
+			,date_format(ncm.NCT_META_REGI, '%Y.%m.%d %k:%i') as NCT_META_REGI_VIEW
+			,ncm.NCT_META_LAST_ID
+			,ncm.NCT_META_LAST
+			,date_format(ncm.NCT_META_LAST, '%Y.%m.%d %k:%i') as NCT_META_LAST_VIEW
+		FROM nct_exp_agenda agd
+		INNER JOIN nct_app_meta ncm 
+				ON ncm.NCT_META_CODE = agd.NCT_META_CODE 
+		WHERE 1=1
+			AND agd.NCT_Agd_CODE = #{nctAgdCode}
+	</select>
+	<select id="expComListTechCnt" parameterType="expListTechVO" resultType="expListTechVO">
+		/** 전문위원회 > 접수현황 리스트 : 리스트 별 기술 분야 카운트 / 기술안보과, 보호협회, 기밀 센터   **/
+		SELECT
+			rec.NCT_META_CODE 
+			,MAX(rec.NCT_REC_CODE ) AS NCT_REC_CODE
+			,kmt.TECH_NCT_CODE AS TECH_NCT_CODE
+			,MAX(kt.TECH_NAME) AS TECH_NAME
+			,count(kmt.TECH_NCT_CODE) AS TECH_ID_CNT
+		FROM nct_app_rec rec
+		INNER JOIN nct_app_meta_tech kmt
+			ON kmt.NCT_META_CODE = rec.NCT_META_CODE 
+		INNER JOIN kaits_tech kt 
+			ON kt.TECH_ID = kmt.TECH_NCT_CODE 	
+		WHERE 1=1
+			AND rec.NCT_META_CODE = #{nctMetaCode}
+		GROUP BY rec.NCT_REC_CODE, TECH_NCT_CODE
+		 
+		
+	</select>
+	
+	<select id="expComListTechList" parameterType="expListTechVO" resultType="expListTechVO">
+		/** 전문위원회 > 접수현황 리스트 : 리스트 별 기술 분야 리스트 / 기술안보과, 보호협회, 기밀 센터   **/
+		SELECT
+			rec.NCT_REC_CODE 
+			,rec.NCT_META_CODE
+			, kt.TECH_ID 
+			, kt.TECH_NAME 
+			, kmt.NCT_META_TECH_NM 
+			, kmt.NCT_META_TECH_SORT
+			,kmt.TECH_UNIQ_ID
+			, kti.TECH_ITEM_NAME 
+		FROM nct_app_rec rec
+		INNER JOIN nct_app_meta_tech kmt
+			ON kmt.NCT_META_CODE = rec.NCT_META_CODE 
+		INNER JOIN kaits_tech_item kti
+			ON kti.TECH_ITEM_ID = kmt.TECH_UNIQ_ID
+			AND kti.TECH_NTC_GID = kmt.TECH_NTC_GID
+		INNER JOIN kaits_tech kt 
+			ON kt.TECH_ID = kmt.TECH_NCT_CODE 
+		WHERE 1=1
+			AND rec.NCT_META_CODE = #{nctMetaCode}
+	</select>
+	
+	<select id="expRecViewTech" parameterType="expRecTechVO" resultType="expRecTechVO">
+		/** 전문위원회 > 접수현황 상세 : 기술 분야 리스트 /기술안보과, 보호협회, 기밀 센터   **/
+		SELECT
+			rec.NCT_REC_CODE 
+			,rec.NCT_META_CODE
+			, kt.TECH_ID 
+			, kt.TECH_NAME 
+			, kmt.NCT_META_TECH_NM 
+			, kmt.NCT_META_TECH_SORT
+			,kmt.TECH_UNIQ_ID
+			, kti.TECH_ITEM_NAME 
+		FROM nct_app_rec rec
+		INNER JOIN nct_app_meta_tech kmt
+			ON kmt.NCT_META_CODE = rec.NCT_META_CODE 
+		INNER JOIN kaits_tech_item kti
+			ON kti.TECH_ITEM_ID = kmt.TECH_UNIQ_ID
+			AND kti.TECH_NTC_GID = kmt.TECH_NTC_GID
+		INNER JOIN kaits_tech kt 
+			ON kt.TECH_ID = kmt.TECH_NCT_CODE 
+		WHERE 1=1
+			AND rec.NCT_META_CODE = #{nctMetaCode}
+		ORDER BY kmt.NCT_META_TECH_SORT ASC;
+	</select>
+	
+	<select id="expRecViewCountury" parameterType="expRecConturyVO" resultType="expRecConturyVO">
+		/** 전문위원회 > 접수현황 상세 : 대상국 리스트 /기술안보과, 보호협회, 기밀 센터   **/
+		SELECT
+			rec.NCT_REC_CODE 
+			,kti.NCT_META_CODE
+			,kti.NCT_CTY_SORT
+			,kti.NCT_CTY_CODE
+			,cty.CON_NAME
+			,kti.NCT_CTY_BUYER 
+		FROM nct_app_rec rec
+		INNER JOIN nct_app_meta_contury kti
+			ON kti.NCT_META_CODE = rec.NCT_META_CODE 
+		INNER JOIN kaits_country_code cty
+			ON cty.CON_CODE = kti.NCT_CTY_CODE
+		WHERE 1=1
+			AND rec.NCT_META_CODE = #{nctMetaCode}
+		ORDER BY kti.NCT_CTY_SORT ASC;
+	</select>
+	
+	<select id="expRecViewHistory" parameterType="expRecHistoryVO" resultType="expRecHistoryVO">
+		/** 전문위원회 > 접수현황 상세 : 히스토리 리스트 /기술안보과, 보호협회, 기밀 센터   **/
+		SELECT
+			rec.NCT_REC_CODE 
+			,rec.NCT_REC_HIS_CODE
+			,rec.NCT_REC_STATUS
+			,rec.HIS_AMG_GRUOP
+			,rec.HIS_COMMENT
+			,rec.HIS_REG_ID
+			,rec.HIS_REG_DT
+			,date_format(rec.HIS_REG_DT, '%Y.%m.%d %k:%i') as HIS_REG_DT_VIEW
+		FROM nct_app_rec_his rec
+		WHERE 1=1
+			AND rec.NCT_REC_CODE = #{nctRecCode}
+		ORDER BY rec.HIS_REG_DT ASC;
+	</select>
+	
+	<select id="expRecViewCompe" parameterType="expRecCompeVO" resultType="expRecCompeVO">
+		/** 전문위원회 > 접수현황 상세 : 검토 권한 리스트 /기술안보과, 보호협회, 기밀 센터   **/
+		SELECT
+			rec.NCT_REC_CODE 
+			,rec.NCT_REC_CODE
+			,rec.NCT_TECH_CODE
+			,rec.NCT_COM_REGI_ID
+			,rec.NCT_COM_REGI_DT
+			,date_format(rec.NCT_COM_REGI_DT, '%Y.%m.%d %k:%i') as NCT_COM_REGI_DT_VIEW
+		FROM nct_app_rec_compe rec
+		WHERE 1=1
+			AND rec.NCT_REC_CODE = #{nctRecCode}
+		ORDER BY rec.NCT_COM_REGI_ID ASC;
+	</select>
+	
+	
+	
+	<select id="expViewFile" parameterType="expLoadFileVO" resultType="expLoadFileVO">
+		/**
+		 * 접수 파일 조회
+		 */
+		select 
+			kfi.NCT_FILE_META
+			, kfi.NCT_FILE_TYPE
+			, kfi.NCT_FILE_SORT
+			, kfi.NCT_USE_CODE
+			, kfm.NCT_FILE_ORIGIN_NM
+			, kfm.NCT_FILE_NAME
+			, case 
+				when SUBSTRING_INDEX(kfm.NCT_FILE_NAME, '.', -1 ) = 'doc' then 'doc'
+				when SUBSTRING_INDEX(kfm.NCT_FILE_NAME, '.', -1 ) = 'docx' then 'doc'
+				when SUBSTRING_INDEX(kfm.NCT_FILE_NAME, '.', -1 ) = 'ppt' then 'ppt'
+				when SUBSTRING_INDEX(kfm.NCT_FILE_NAME, '.', -1 ) = 'pptx' then 'ppt'
+				when SUBSTRING_INDEX(kfm.NCT_FILE_NAME, '.', -1 ) = 'xls' then 'xls'
+				when SUBSTRING_INDEX(kfm.NCT_FILE_NAME, '.', -1 ) = 'xlsx' then 'xls'
+				when SUBSTRING_INDEX(kfm.NCT_FILE_NAME, '.', -1 ) = 'hwpx' then 'hwp'
+				when SUBSTRING_INDEX(kfm.NCT_FILE_NAME, '.', -1 ) = 'hwp' then 'hwp'	
+				when SUBSTRING_INDEX(kfm.NCT_FILE_NAME, '.', -1 ) = 'pdf' then 'pdf'
+				when SUBSTRING_INDEX(kfm.NCT_FILE_NAME, '.', -1 ) = 'txt' then 'txt'
+				else 'etc' end as NCT_FILE_EXT
+			, kfm.NCT_FILE_PATH
+			, kfm.NCT_FILE_SIZE
+			, kfm.NCT_FILE_KEY
+			, kfi.NCT_FILE_VIEW
+			, kfi.NCT_FILE_REG_ID
+			, kfi.NCT_FILE_REG_DATE
+			, date_format(kfi.NCT_FILE_REG_DATE, '%Y.%m.%d %k:%i') as NCT_FILE_REG_DATE_VIEW
+		from kaits_nct_file_meta kfm
+		inner join kaits_nct_file kfi
+			on kfi.NCT_FILE_META = kfm.NCT_FILE_META
+		where kfi.NCT_USE_CODE = (
+			<if test="nctRecCode != null">
+				select NCT_META_CODE from nct_app_rec where NCT_REC_CODE = #{nctUseCode}
+			</if>
+			<if test="nctAgdCode != null">
+				select NCT_META_CODE from nct_exp_agenda where NCT_AGD_CODE = #{nctUseCode}
+			</if>
+		)
+		order by kfi.NCT_FILE_TYPE, kfi.NCT_FILE_SORT
+	</select>
+	
+	<delete id="delRecCompe" parameterType="expRecCompeVO">
+		/** 전문위원회  >  접수현황 상세  >> 의견첨부 권한 삭제 **/
+		delete from nct_app_rec_compe
+		where 1=1
+			and NCT_REC_CODE = #{nctRecCode}
+	</delete>
+	
+	<insert id="saveRecCompe" parameterType="expRecCompeVO">
+		/** 전문위원회  >  접수현황 상세  >> 의견첨부 권한 생성**/
+		insert into nct_app_rec_compe (
+			NCT_REC_CODE
+			, NCT_TECH_CODE
+			, NCT_COM_REGI_ID
+			, NCT_COM_REGI_DT
+		) values (
+			#{nctRecCode}
+			, #{nctTechCode}
+			, #{nctComRegiId} 
+			, #{nctComRegiDt}
+		)
+	</insert>
+	
+</mapper>

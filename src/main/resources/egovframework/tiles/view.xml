@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+        "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+<tiles-definitions>
+    <definition name="/main/*" extends="MainTemplate">
+        <put-attribute name="content" 	value="/WEB-INF/views/main/{1}.jsp" />
+    </definition>
+	
+	 <!-- 전문위원회 -->
+    <definition name=".tiles/excom/*" extends="ExTemplate">
+        <put-attribute name="content" 	value="/WEB-INF/views/excom/{1}.jsp" />
+    </definition>
+    
+     <!-- 전문위원회 -->
+    <definition name=".tiles/expcom/*" extends="ExpTemplate">
+        <put-attribute name="content" 	value="/WEB-INF/views/expcom/{1}.jsp" />
+    </definition>
+    
+     <!-- ERROR -->
+    <definition name=".tiles/common/*" extends="ErrorTemplate">
+        <put-attribute name="content" 	value="/WEB-INF/views/common/{1}.jsp" />
+    </definition>
+    
+    <!-- <definition name=".tiles/expcom/print" extends="ExpTemplate">
+        <put-attribute name="content" 	value="/WEB-INF/views/expcom/{1}/{2}.jsp" />
+    </definition> -->
+    
+    <!-- Member -->
+    <definition name=".tiles/member/*" extends="MemberTemplate">
+        <put-attribute name="content" 	value="/WEB-INF/views/member/{1}.jsp" />
+    </definition>
+    
+    <!-- Member -->
+    <definition name=".tiles/policy/*" extends="PolicyTemplate">
+        <put-attribute name="content" 	value="/WEB-INF/views/policy/{1}.jsp" />
+    </definition>
+    
+    <definition name=".tiles/mypage/*" extends="MypageTemplate">
+        <put-attribute name="content" 	value="/WEB-INF/views/mypage/{1}.jsp" />
+    </definition>
+    
+    <!-- Member -->
+    <definition name=".tiles/board/*" extends="BoardTemplate">
+        <put-attribute name="content" 	value="/WEB-INF/views/board/{1}.jsp" />
+    </definition>
+    
+    <!-- Research -->
+    <definition name=".tiles/system/*" extends="ResearchTemplate">
+        <put-attribute name="content" 	value="/WEB-INF/views/system/{1}.jsp" />
+    </definition>
+    
+    
+    <definition name="*" extends="DefaultTemplate">
+        <put-attribute name="content" 	value="/WEB-INF/views/{1}.jsp" />
+    </definition>
+
+    <definition name="*/*" extends="DefaultTemplate">
+        <put-attribute name="content" 	value="/WEB-INF/views/{1}/{2}.jsp" />
+    </definition>
+
+    <definition name="*/*/*" extends="DefaultTemplate">
+        <put-attribute name="content" 	value="/WEB-INF/views/{1}/{2}/{3}.jsp" />
+    </definition>
+    
+</tiles-definitions>

@@ -1,0 +1,957 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kaits.nct.expert.mapper.ExpertReceiptMapper">
+	<select id="getReceiptListGroupCount" parameterType="expertReceiptVO" resultType="expertTabVO">
+		select 
+			trc.RCPT_STATUS as TITLE, count(*) as COUNT
+		from kaits_receipt trc
+		inner join kaits_receipt_tech trctech
+			on trctech.RCPT_IDX = trc.RCPT_IDX
+			and trctech.TECH_RCPT_NUM_SEQ = 1
+		inner join kaits_tech ttech
+			on ttech.TECH_ID = trctech.TECH_NCT_CODE
+		inner join kaits_tech_item ttitem
+			on ttitem.TECH_NTC_GID = trctech.TECH_NTC_GID
+			and ttitem.TECH_ID = trctech.TECH_NCT_CODE
+			and ttitem.TECH_ITEM_ID = trctech.TECH_UNIQ_ID
+		where 1=1
+<!-- 		권한별 접수현황 조회 내용 시작 -->
+		<if test="admGroup == 'AMG01' || admGroup == 'AMG02' || admGroup == 'AMG03'">
+			and trc.RCPT_A_VIEW='Y' and trc.RCPT_VIEW='Y' and trc.RCPT_STATUS != 'TS'
+		</if>
+		<if test="admGroup == 'AMG04'">
+			and trc.RCPT_A_VIEW='Y' and trc.RCPT_VIEW='Y' and trc.RCPT_STATUS != 'TS'
+			and trc.RCPT_IDX IN (
+				select distinct krc.RCPT_IDX 
+				from kaits_admin_authority kaa
+				inner join kaits_receipt_competence krc 
+					on krc.COM_RCPT_COM_TECH = kaa.ADM_AUTH_TECH 
+				where 1=1
+				and kaa.ADM_AUTH_ID = #{admId}
+			)
+		</if>
+		
+<!-- 		그 외 권한은 조회 불가 -->
+		<if test="admGroup != 'AMG00' and admGroup != 'AMG01' and admGroup != 'AMG02' and admGroup != 'AMG03' and admGroup != 'AMG04'">
+			and 1!=1
+		</if>
+<!-- 		권한별 접수현황 조회 내용 끝 -->
+		group by trc.RCPT_STATUS
+	</select>
+	<select id="getReceiptStatListGroupCount" parameterType="expertReceiptVO" resultType="expertTabVO">
+		select 
+			krs.RCPT_STATUS as TITLE, count(*) as COUNT
+		from kaits_receipt_stat krs
+		inner join kaits_meta km 
+			on km.RCPT_META_CODE = krs.RCPT_META_CODE 
+		left join kaits_com_member kcm 
+			on kcm.CPN_ID = km.RCPT_COM_CODE 
+		inner join kaits_meta_tech kmt
+			on kmt.RCPT_META_CODE = km.RCPT_META_CODE 
+			and kmt.TECH_RCPT_NUM_SEQ = 1
+		inner join kaits_tech kt 
+			on kt.TECH_ID = kmt.TECH_NCT_CODE
+		inner join kaits_tech_item kti 
+			on kti.TECH_NTC_GID = kmt.TECH_NTC_GID
+			and kti.TECH_ID = kmt.TECH_NCT_CODE
+			and kti.TECH_ITEM_ID = kmt.TECH_UNIQ_ID
+		where 1=1
+<!-- 		권한별 접수현황 조회 내용 시작 -->
+		<if test="admGroup == 'AMG01' || admGroup == 'AMG02' || admGroup == 'AMG03'">
+			and krs.RCPT_A_VIEW='Y' and krs.RCPT_VIEW='Y' and krs.RCPT_STATUS != 'TS'
+		</if>
+		<if test="admGroup == 'AMG04'">
+			and krs.RCPT_A_VIEW='Y' and krs.RCPT_VIEW='Y' and krs.RCPT_STATUS != 'TS'
+			and krs.RCPT_CODE IN (
+				select distinct krc.RCPT_IDX 
+				from kaits_admin_authority kaa
+				inner join kaits_receipt_competence krc 
+					on krc.COM_RCPT_COM_TECH = kaa.ADM_AUTH_TECH 
+				where 1=1
+				and kaa.ADM_AUTH_ID = #{admId}
+			)
+		</if>
+		
+<!-- 		그 외 권한은 조회 불가 -->
+		<if test="admGroup != 'AMG00' and admGroup != 'AMG01' and admGroup != 'AMG02' and admGroup != 'AMG03' and admGroup != 'AMG04'">
+			and 1!=1
+		</if>
+<!-- 		권한별 접수현황 조회 내용 끝 -->
+		group by krs.RCPT_STATUS
+	</select>
+	<select id="getReceiptList" parameterType="expertReceiptVO" resultType="expertReceiptVO">
+		select 
+			  trc.RCPT_IDX
+			, trc.RCPT_TYPE_CODE
+		    , FUN_GET_RCPT_TYPE_NAME(trc.RCPT_TYPE_CODE) as RCPT_TYPE_CODE_NM
+		    , trc.RCPT_COM_TYPE 
+		    , FUN_GET_RCPT_COM_TYPE_NAME(trc.RCPT_COM_TYPE) as RCPT_COM_TYPE_NM
+			, trc.RCPT_COMPANY_NM
+			, trc.RCPT_REGI_NUM
+			, trc.RCPT_COMPANY_CEO
+			, trc.RCPT_COMPANY_POST
+			, trc.RCPT_COMPANY_ADD
+			, trc.RCPT_COMPANY_ADD2
+			, trc.RCPT_COMPANY_PHONE
+			, trc.RCPT_COMPANY_B_POST
+			, trc.RCPT_COMPANY_B_ADD
+			, trc.RCPT_COMPANY_B_PHONE
+			, trc.RCPT_PM_NAME
+			, trc.RCPT_PM_DEPT
+			, trc.RCPT_PM_POSITION
+			, trc.RCPT_PM_PHONE1
+			, trc.RCPT_PM_PHONE2
+			, trc.RCPT_PM_PHONE3
+			, trc.RCPT_PM_MOBILE1
+			, trc.RCPT_PM_MOBILE2
+			, trc.RCPT_PM_MOBILE3
+			, trc.RCPT_PM_EMAIL
+			, trc.RCPT_TECH_FORM
+			, trc.RCPT_EX_REASON_SALE
+			, trc.RCPT_EX_REASON_S_COM
+			, trc.RCPT_EX_REASON_TRANS
+			, trc.RCPT_EX_REASON_T_COM
+			, trc.RCPT_EX_REASON_ETC
+			, trc.RCPT_EX_REASON_E_COM
+			, trc.RCPT_EX_DATE
+			, date_format(trc.RCPT_EX_DATE, '%Y-%m-%d') as RCPT_EX_DATE_10
+			, trc.RCPT_TECH_QUA
+			, trc.RCPT_REASON
+			, trc.RCPT_LAW01
+			, trc.RCPT_LAW02
+			, trc.RCPT_LAW03
+			, trc.RCPT_REG_ID
+			, trc.RCPT_REG_DATE
+			, date_format(trc.RCPT_REG_DATE, '%Y-%m-%d') as RCPT_REG_DATE_10
+			, date_format(trc.RCPT_REG_DATE, '%Y년 %m월 %d일 %k:%i:%s') as RCPT_REG_DATE_STR
+			, trc.RCPT_STATUS
+		    , FUN_GET_RCPT_STATUS_NAME(trc.RCPT_STATUS) as RCPT_STATUS_NM
+			, trc.RCPT_STATUS_CODE
+			, trc.RCPT_VIEW
+			, trc.RCPT_A_VIEW
+			, trc.AGD_ADM_YN
+			, trc.RCPT_STATUS_LAST
+			, date_format(trc.RCPT_STATUS_LAST, '%Y-%m-%d') as RCPT_STATUS_LAST_10
+			, trc.RCPT_AGENDA_CNT
+			, trc.RCPT_FIX_DATE
+			, ttech.TECH_NAME 
+			, ttitem.TECH_ITEM_NAME 
+			, trctech.TECH_RCPT_TECH_NM 
+		from kaits_receipt trc
+		inner join kaits_receipt_tech trctech
+			on trctech.RCPT_IDX = trc.RCPT_IDX
+			and trctech.TECH_RCPT_NUM_SEQ = 1
+		inner join kaits_tech ttech
+			on ttech.TECH_ID = trctech.TECH_NCT_CODE
+		inner join kaits_tech_item ttitem
+			on ttitem.TECH_NTC_GID = trctech.TECH_NTC_GID
+			and ttitem.TECH_ID = trctech.TECH_NCT_CODE
+			and ttitem.TECH_ITEM_ID = trctech.TECH_UNIQ_ID
+		where 1=1
+<!-- 		권한별 접수현황 조회 내용 시작 -->
+		<if test="admGroup == 'AMG01' or admGroup == 'AMG02' or admGroup == 'AMG03'">
+			and trc.RCPT_A_VIEW='Y' and trc.RCPT_VIEW='Y' and trc.RCPT_STATUS != 'TS'
+		</if>
+		<if test="admGroup == 'AMG04'">
+			and trc.RCPT_A_VIEW='Y' and trc.RCPT_VIEW='Y' and trc.RCPT_STATUS != 'TS'
+			and trc.RCPT_IDX IN (
+				select distinct krc.RCPT_IDX 
+				from kaits_admin_authority kaa
+				inner join kaits_receipt_competence krc 
+					on krc.COM_RCPT_COM_TECH = kaa.ADM_AUTH_TECH 
+				where 1=1
+				and kaa.ADM_AUTH_ID = #{admId}
+			)
+		</if>
+<!-- 		그 외 권한은 조회 불가 -->
+		<if test="admGroup != 'AMG00' and admGroup != 'AMG01' and admGroup != 'AMG02' and admGroup != 'AMG03' and admGroup != 'AMG04'">
+			and 1!=1
+		</if>
+<!-- 		권한별 접수현황 조회 내용 끝 -->
+		<if test="rcptStatus != null">
+			and trc.RCPT_STATUS = #{rcptStatus}
+		</if>
+		<if test="rcptIdx != null">
+			and trc.RCPT_IDX = #{rcptIdx}
+		</if>
+		order by trc.RCPT_STATUS_LAST desc, trc.RCPT_IDX desc
+	</select>
+	<select id="getReceiptStatList" parameterType="expertReceiptVO" resultType="expertReceiptVO">
+		select 
+		    krs.RCPT_CODE 
+			, km.RCPT_TYPE_CODE
+		    , FUN_GET_RCPT_TYPE_NAME(km.RCPT_TYPE_CODE) as RCPT_TYPE_CODE_NM
+		    , krs.RCPT_COM_TYPE 
+		    , FUN_GET_RCPT_COM_TYPE_NAME(krs.RCPT_COM_TYPE) as RCPT_COM_TYPE_NM
+			, kcm.CPN_NM AS RCPT_COMPANY_NM
+			, kcm.CPN_S_NO AS RCPT_REGI_NUM
+			, kcm.CPN_CEO AS RCPT_COMPANY_CEO
+			, kcm.CPN_B_ZIP AS RCPT_COMPANY_POST
+			, kcm.CPN_B_ADD1 AS RCPT_COMPANY_ADD
+			, kcm.CPN_B_ADD2 AS RCPT_COMPANY_ADD2
+			, kcm.CPN_B_PHONE1 AS RCPT_COMPANY_PHONE1
+			, kcm.CPN_B_PHONE2 AS RCPT_COMPANY_PHONE2
+			, kcm.CPN_B_PHONE3 AS RCPT_COMPANY_PHONE3
+			, kcm.CPN_S_ZIP AS RCPT_COMPANY_B_POST
+			, kcm.CPN_S_ADD1 AS RCPT_COMPANY_B_ADD
+			, kcm.CPN_S_ADD2 AS RCPT_COMPANY_B_ADD2
+			, kcm.CPN_S_PHONE1 AS RCPT_COMPANY_B_PHONE1
+			, kcm.CPN_S_PHONE2 AS RCPT_COMPANY_B_PHONE2
+			, kcm.CPN_S_PHONE3 AS RCPT_COMPANY_B_PHONE3
+			, kcm.CPN_P_NM AS RCPT_PM_NAME
+			, kcm.CPN_P_DEPT AS RCPT_PM_DEPT
+			, kcm.CPN_P_POSITION AS RCPT_PM_POSITION
+			, kcm.CPN_P_PHONE1 AS RCPT_PM_PHONE1
+			, kcm.CPN_P_PHONE2 AS RCPT_PM_PHONE2
+			, kcm.CPN_P_PHONE3 AS RCPT_PM_PHONE3
+			, kcm.CPN_P_MOBILE1 AS RCPT_PM_MOBILE1
+			, kcm.CPN_P_MOBILE2 AS RCPT_PM_MOBILE2
+			, kcm.CPN_P_MOBILE3 AS RCPT_PM_MOBILE3
+			, kcm.CPN_P_EMAIL AS RCPT_PM_EMAIL
+			, km.RCPT_TECH_FORM
+			, km.RCPT_EX_REASON_SALE
+			, km.RCPT_EX_REASON_S_COM
+			, km.RCPT_EX_REASON_TRANS
+			, km.RCPT_EX_REASON_T_COM
+			, km.RCPT_EX_REASON_ETC
+			, km.RCPT_EX_REASON_E_COM
+			, km.RCPT_EX_DATE
+			, date_format(km.RCPT_EX_DATE, '%Y-%m-%d') as RCPT_EX_DATE_10
+			, km.RCPT_TECH_QUA
+			, km.RCPT_REASON
+			, km.RCPT_LAW01
+			, km.RCPT_LAW02
+			, km.RCPT_LAW03
+			, krs.RCPT_REG_ID
+			, krs.RCPT_REG_DATE
+			, date_format(krs.RCPT_REG_DATE, '%Y-%m-%d') as RCPT_REG_DATE_10
+			, date_format(krs.RCPT_REG_DATE, '%Y년 %m월 %d일 %k:%i:%s') as RCPT_REG_DATE_STR
+			, krs.RCPT_STATUS
+		    , FUN_GET_RCPT_STATUS_NAME(krs.RCPT_STATUS) as RCPT_STATUS_NM
+			, krs.RCPT_STATUS_CODE
+			, krs.RCPT_VIEW
+			, krs.RCPT_A_VIEW
+			, krs.AGD_ADM_YN
+			, krs.RCPT_STATUS_LAST
+			, date_format(krs.RCPT_STATUS_LAST, '%Y-%m-%d') as RCPT_STATUS_LAST_10
+			, krs.RCPT_AGENDA_CNT
+			, krs.RCPT_FIX_DATE
+			, kt.TECH_NAME 
+			, kti.TECH_ITEM_NAME 
+			, kmt.TECH_RCPT_TECH_NM 
+		from kaits_receipt_stat krs
+		inner join kaits_meta km 
+			on km.RCPT_META_CODE = krs.RCPT_META_CODE 
+		left join kaits_com_member kcm 
+			on kcm.CPN_ID = km.RCPT_COM_CODE 
+		inner join kaits_meta_tech kmt
+			on kmt.RCPT_META_CODE = km.RCPT_META_CODE 
+			and kmt.TECH_RCPT_NUM_SEQ = 1
+		inner join kaits_tech kt 
+			on kt.TECH_ID = kmt.TECH_NCT_CODE
+		inner join kaits_tech_item kti 
+			on kti.TECH_NTC_GID = kmt.TECH_NTC_GID
+			and kti.TECH_ID = kmt.TECH_NCT_CODE
+			and kti.TECH_ITEM_ID = kmt.TECH_UNIQ_ID
+		where 1=1
+<!-- 		권한별 접수현황 조회 내용 시작 -->
+		<if test="admGroup == 'AMG01' or admGroup == 'AMG02' or admGroup == 'AMG03'">
+			and krs.RCPT_A_VIEW='Y' and krs.RCPT_VIEW='Y' and krs.RCPT_STATUS != 'TS'
+		</if>
+		<if test="admGroup == 'AMG04'">
+			and krs.RCPT_A_VIEW='Y' and krs.RCPT_VIEW='Y' and krs.RCPT_STATUS != 'TS'
+			and krs.RCPT_CODE IN (
+				select distinct krc.RCPT_IDX 
+				from kaits_admin_authority kaa
+				inner join kaits_receipt_competence krc 
+					on krc.COM_RCPT_COM_TECH = kaa.ADM_AUTH_TECH 
+				where 1=1
+				and kaa.ADM_AUTH_ID = #{admId}
+			)
+		</if>
+<!-- 		그 외 권한은 조회 불가 -->
+		<if test="admGroup != 'AMG00' and admGroup != 'AMG01' and admGroup != 'AMG02' and admGroup != 'AMG03' and admGroup != 'AMG04'">
+			and 1!=1
+		</if>
+<!-- 		권한별 접수현황 조회 내용 끝 -->
+		<if test="rcptStatus != null">
+			and krs.RCPT_STATUS = #{rcptStatus}
+		</if>
+		<if test="rcptCode != null">
+			and krs.RCPT_CODE = #{rcptCode}
+		</if>
+		ORDER BY krs.RCPT_STATUS = 'AP' DESC
+			, krs.RCPT_STATUS = 'RA' DESC
+			, krs.RCPT_STATUS = 'RJ' DESC
+			, krs.RCPT_STATUS = 'AC' DESC
+			, krs.RCPT_STATUS = 'RC' DESC
+			, krs.RCPT_CODE DESC;
+	</select>
+	<select id="getReceiptTechList" parameterType="expertReceiptTechVO" resultType="expertReceiptTechVO">
+		/**
+		 * 접수 기술 조회
+		 * ExpertReceiptMapper > getReceiptTechList
+		 */
+		select
+			  kr.RCPT_IDX 
+			, kt.TECH_ID 
+			, kt.TECH_NAME 
+			, kt.TECH_SORT 
+			, kt.TECH_DEL_YN 
+			, kt.TECH_SHW_YN 
+			, kt.TECH_USE_YN 
+			, kt.TECH_REG 
+			, kt.TECH_REG_ID 
+			, kt.TECH_UPDATE 
+			, kt.TECH_UPDATE_ID 
+		from kaits_receipt kr 
+		inner join kaits_receipt_tech krt
+			on krt.RCPT_IDX = kr.RCPT_IDX 
+		inner join kaits_tech kt 
+			on kt.TECH_ID = krt.TECH_NCT_CODE 
+		where 1=1
+		and krt.RCPT_IDX = #{rcptIdx}
+	</select>
+	<select id="getReceiptStatTechList" parameterType="expertReceiptTechVO" resultType="expertReceiptTechVO">
+		/**
+		 * 접수 기술 조회
+		 * ExpertReceiptMapper > getReceiptStatTechList
+		 */
+		select
+			  krs.RCPT_CODE 
+			, kt.TECH_ID 
+			, kt.TECH_NAME 
+			, kmt.TECH_RCPT_TECH_NM 
+			, kti.TECH_ITEM_NAME 
+			, kt.TECH_SORT 
+			, kt.TECH_DEL_YN 
+			, kt.TECH_SHW_YN 
+			, kt.TECH_USE_YN 
+			, kt.TECH_REG 
+			, kt.TECH_REG_ID 
+			, kt.TECH_UPDATE 
+			, kt.TECH_UPDATE_ID 
+		from kaits_receipt_stat krs
+		inner join kaits_meta_tech kmt
+			on kmt.RCPT_META_CODE = krs.RCPT_META_CODE 
+		inner join kaits_tech_item kti
+			on kti.TECH_ITEM_ID = kmt.TECH_UNIQ_ID
+			and kti.TECH_NTC_GID = kmt.TECH_NTC_GID
+		inner join kaits_tech kt 
+			on kt.TECH_ID = kmt.TECH_NCT_CODE 
+		where 1=1
+		and krs.RCPT_CODE = #{rcptCode}
+	</select>
+	<select id="getReceiptCountryList" parameterType="expertReceiptCountryVO" resultType="expertReceiptCountryVO">
+		/**
+		 * 접수 대상국 조회
+		 * ExpertReceiptMapper > getReceiptCountryList
+		 */
+		select 
+			kmc.RCPT_META_CODE 
+			, kmc.CTY_RCPT_NUM_SEQ 
+			, kmc.CTY_TARGET_COUNTRY 
+			, kcc.CON_NAME as CTY_TARGET_COUNTRY_NAME
+			, kmc.CTY_BUYER 
+		from kaits_meta_contury kmc
+		inner join kaits_receipt_stat krs 
+			on krs.RCPT_META_CODE = kmc.RCPT_META_CODE 
+		inner join kaits_country_code kcc 
+			on kcc.CON_CODE = kmc.CTY_TARGET_COUNTRY
+		where 1=1
+			and krs.RCPT_CODE = #{rcptIdx}
+		order by krs.RCPT_CODE , kmc.CTY_RCPT_NUM_SEQ 
+	</select>
+<!-- 	<select id="getMetaCountryList" parameterType="expertReceiptCountryVO" resultType="expertReceiptCountryVO"> -->
+<!-- 		/** -->
+<!-- 		 * 접수 대상국 조회 -->
+<!-- 		 * ExpertReceiptMapper > getMetaCountryList -->
+<!-- 		 */ -->
+<!-- 		select  -->
+<!-- 			krc.RCPT_IDX  -->
+<!-- 			, krc.CTY_RCPT_NUM_SEQ -->
+<!-- 			, krc.CTY_TARGET_COUNTRY  -->
+<!-- 			, kcc.CON_NAME as CTY_TARGET_COUNTRY_NAME -->
+<!-- 			, krc.CTY_BUYER  -->
+<!-- 		from kaits_receipt_contury krc -->
+<!-- 		inner join kaits_country_code kcc  -->
+<!-- 			on kcc.CON_CODE = krc.CTY_TARGET_COUNTRY  -->
+<!-- 		where 1=1 -->
+<!-- 			and krc.RCPT_IDX = #{rcptIdx} -->
+<!-- 		order by krc.RCPT_IDX, krc.CTY_RCPT_NUM_SEQ  -->
+<!-- 	</select> -->
+	<select id="getReceiptFileList" parameterType="expertFileVO" resultType="expertFileVO">
+		/**
+		 * 접수 파일 조회
+		 * ExpertReceiptMapper > getReceiptFileList
+		 */
+		select 
+			kraf.RCPT_IDX 
+			, kraf.FILE_RCPT_SEQ 
+			, kraf.FILE_NM 
+			, kraf.FILE_ORIGIN_NM 
+			, kraf.FILE_SIZE 
+			, kraf.FILE_KEY 
+			, kraf.FILE_REG_ID 
+			, kraf.FILE_REG_DATE 
+		from kaits_receipt_add_file kraf 
+		where 1=1
+			and kraf.RCPT_IDX = #{rcptIdx}
+		order by kraf.RCPT_IDX, kraf.FILE_RCPT_SEQ
+	</select>
+	<select id="getReceiptStatFileList" parameterType="expertFileVO" resultType="expertFileVO">
+		/**
+		 * 접수 파일 조회
+		 * ExpertReceiptMapper > getReceiptFileList
+		 */
+		select 
+			kfi.FILE_AGD_IDX AS RCPT_IDX
+			, kfi.FILE_TYPE AS FILE_RCPT_SEQ
+			, kfm.FILE_NM
+			, kfm.FILE_ORIGIN_NM
+			, kfm.FILE_PATH
+			, kfm.FILE_SIZE
+			, kfm.FILE_KEY
+			, kfi.FILE_REG_ID
+			, kfi.FILE_REG_DATE
+		from kaits_file_mst kfm
+		inner join kaits_file_idx kfi
+			on kfi.FILE_CODE = kfm.FILE_CODE
+		where kfi.FILE_AGD_IDX = (
+			select RCPT_META_CODE from kaits_receipt_stat where RCPT_CODE = #{rcptIdx} 
+		)
+		order by kfi.FILE_TYPE, kfi.FILE_SORT 
+	</select>
+	<select id="getReceiptHistoryList" parameterType="expertReceiptHistoryVO" resultType="expertReceiptHistoryVO">
+		/**
+		 * 접수 히스토리 조회
+		 * ExpertReceiptMapper > getReceiptHistoryList
+		 */
+		select 
+			krh.RCPT_IDX 
+			, krh.HIS_CODE 
+			, krh.HIS_RCPT_STATUS 
+		    , FUN_GET_RCPT_STATUS_NAME(krh.HIS_RCPT_STATUS) as HIS_RCPT_STATUS_NM
+			, krh.HIS_GID 
+			, krh.HIS_TECH_TYPE 
+			, krh.HIS_COMMENT 
+			, kam.ADM_DEPT
+			, kam.ADM_NAME
+			, krh.HIS_REG_ID 
+			, krh.HIS_REG_IP 
+			, krh.HIS_REG_DT 
+			, date_format(krh.HIS_REG_DT, '%Y-%m-%d %k:%i') as HIS_REG_DT_STR
+		from kaits_receipt_history krh 
+		left join kaits_admin_member kam 
+			on kam.ADM_ID = krh.HIS_REG_ID 
+		where 1=1
+		and krh.RCPT_IDX = #{rcptIdx}
+		order by krh.HIS_REG_DT asc
+	</select>
+	<select id="getReceiptCompetenceList" parameterType="expertReceiptTechVO" resultType="expertReceiptTechVO">
+		/**
+		 * 접수 열람 및 의견 작성 권한 조회
+		 * ExpertReceiptMapper > getReceiptCompetenceList
+		 */
+		select 
+			krc.RCPT_IDX
+			, krc.COM_RCPT_COM_TECH as TECH_NCT_CODE
+		from kaits_receipt_competence krc
+		where 1=1
+		and krc.RCPT_IDX = #{rcptCode}
+	</select>
+	<insert id="saveReceiptHistory" parameterType="expertReceiptHistoryVO">
+		/**
+		 * 접수 히스토리 생성
+		 * ExpertReceiptMapper > saveReceiptHistory
+		 */
+		insert into kaits_receipt_history (
+			RCPT_IDX
+			, HIS_CODE
+			, HIS_RCPT_STATUS
+			, HIS_GID
+			, HIS_TECH_TYPE
+			, HIS_COMMENT
+			, HIS_REG_ID
+			, HIS_REG_IP
+			, HIS_REG_DT
+		) values (
+			#{rcptIdx}
+			, #{hisCode}
+			, #{hisRcptStatus}
+			, #{hisGid}
+			, #{hisTechType}
+			, #{hisComment}
+			, #{hisRegId}
+			, #{hisRegIp}
+			, NOW()
+		)
+	</insert>
+	<delete id="deleteReceiptCompetence" parameterType="expertReceiptTechVO">
+		/**
+		 * 접수 히스토리 생성
+		 * ExpertReceiptMapper > deleteReceiptCompetence
+		 */
+		delete from kaits_receipt_competence
+		where 1=1
+			and RCPT_IDX = #{rcptCode}
+	</delete>
+	<insert id="saveReceiptCompetence" parameterType="expertReceiptTechVO">
+		/**
+		 * 접수 히스토리 생성
+		 * ExpertReceiptMapper > saveReceiptCompetence
+		 */
+		insert into kaits_receipt_competence (
+			RCPT_IDX
+			, COM_RCPT_COM_TECH
+			, COM_REGI_ID
+			, COM_REGI_DT
+		) values (
+			#{rcptCode}
+			, #{techNctCode}
+			, #{techRegId}
+			, NOW()
+		)
+	</insert>
+	<update id="updateReceiptStatus" parameterType="expertReceiptVO">
+		/**
+		 * 접수 상태 변경 (반려 / 반려회수 / 승인 / 승인회수)
+		 * ExpertReceiptMapper > updateReceiptStatus
+		 */
+		update kaits_receipt_stat set 
+			RCPT_STATUS = #{rcptStatus}
+			, RCPT_STATUS_LAST = NOW()
+			, RCPT_STATUS_LAST_ID = #{admId}
+		where 1=1
+		and RCPT_CODE= #{rcptCode}
+	</update>
+	<update id="updateAgendaReceiptStatus" parameterType="expertReceiptVO">
+		/**
+		 * 접수검토에 대한 접수 상태 변경 (검토완료)
+		 * - (추가)안건 카운트 증가
+		 * ExpertReceiptMapper > updateAgendaReceiptStatus
+		 */
+		update kaits_receipt_stat set
+			RCPT_AGENDA_CNT = RCPT_AGENDA_CNT + 1
+			, RCPT_STATUS_LAST = NOW()
+		where 1=1
+		and RCPT_CODE = #{rcptCode}
+	</update>
+	<select id="getCountryList" parameterType="expertCountryVO" resultType="expertCountryVO">
+		/**
+		 * 국가 코드 조회
+		 * ExpertReceiptMapper > getCountryList
+		 */
+		SELECT 
+			kcc.CON_ID
+			, kcc.CON_CODE
+			, kcc.CON_NAME
+			, kcc.CON_INFO
+			, kcc.CON_USE_YN
+			, kcc.CON_REG
+			, kcc.CON_REG_ID
+			, kcc.CON_UPDATE
+			, kcc.CON_UPDATE_ID
+		FROM kaits_country_code kcc
+		WHERE 1=1
+			AND kcc.CON_USE_YN = 'Y'
+		<if test="conName != null">
+			and kcc.CON_NAME LIKE CONCAT('%',#{conName},'%')
+		</if>
+		ORDER BY kcc.CON_NAME
+	</select>
+	<select id="getNewRcptIdx" resultType="String">
+		/**
+		 * 새로운 접수번호 조회
+		 * ExpertReceiptMapper > getNewRcptIdx
+		 */
+		SELECT CONCAT(DATE_FORMAT(NOW(),'%Y'),'-',LPAD(IFNULL(MAX(RIGHT(kr.RCPT_IDX,4)),0)+1,4,'0')) AS RCPT_IDX
+		FROM kaits_receipt kr WHERE SUBSTRING(kr.RCPT_IDX,1,4) = DATE_FORMAT(NOW(),'%Y')
+	</select>
+	<select id="getNewRcptStatCode" resultType="String">
+		/**
+		 * 새로운 접수번호 조회
+		 * ExpertReceiptMapper > getNewRcptStatCode
+		 */
+		SELECT CONCAT(DATE_FORMAT(NOW(),'%Y'),'-',DATE_FORMAT(NOW(),'%m'),'-',LPAD(IFNULL(MAX(RIGHT(krs.RCPT_CODE,4)),0)+1,4,'0')) AS RCPT_CODE
+		FROM kaits_receipt_stat krs WHERE SUBSTRING(krs.RCPT_CODE,1,7) = CONCAT(DATE_FORMAT(NOW(),'%Y'),'-',DATE_FORMAT(NOW(),'%m'))
+	</select>
+	<select id="getNewMetaCode" resultType="String">
+		/**
+		 * 새로운 메타코드 조회
+		 * ExpertReceiptMapper > getNewMetaCode
+		 */
+		SELECT CONCAT(DATE_FORMAT(NOW(),'%Y'),'-',LPAD(IFNULL(MAX(RIGHT(km.RCPT_META_CODE,4)),0)+1,8,'0')) AS RCPT_META_CODE
+		FROM kaits_meta km WHERE SUBSTRING(km.RCPT_META_CODE,1,4) = DATE_FORMAT(NOW(),'%Y');
+	</select>
+	<insert id="saveReceipt" parameterType="expertReceiptVO">
+		/**
+		 * 접수 생성
+		 * ExpertReceiptMapper > saveReceipt
+		 */
+		insert into  kaits_receipt (
+			RCPT_IDX
+			, RCPT_TYPE_CODE
+			, RCPT_COM_TYPE
+			, RCPT_COMPANY_NM
+			, RCPT_REGI_NUM
+			, RCPT_COMPANY_CEO
+			, RCPT_COMPANY_POST
+			, RCPT_COMPANY_ADD
+			, RCPT_COMPANY_ADD2
+			, RCPT_COMPANY_PHONE
+			, RCPT_COMPANY_B_POST
+			, RCPT_COMPANY_B_ADD
+			, RCPT_COMPANY_B_ADD2
+			, RCPT_COMPANY_B_PHONE
+			, RCPT_PM_NAME
+			, RCPT_PM_DEPT
+			, RCPT_PM_POSITION
+			, RCPT_PM_PHONE1
+			, RCPT_PM_PHONE2
+			, RCPT_PM_PHONE3
+			, RCPT_PM_MOBILE1
+			, RCPT_PM_MOBILE2
+			, RCPT_PM_MOBILE3
+			, RCPT_PM_EMAIL
+			, RCPT_TECH_FORM
+			, RCPT_EX_REASON_SALE
+			, RCPT_EX_REASON_S_COM
+			, RCPT_EX_REASON_TRANS
+			, RCPT_EX_REASON_T_COM
+			, RCPT_EX_REASON_ETC
+			, RCPT_EX_REASON_E_COM
+			, RCPT_EX_DATE
+			, RCPT_TECH_QUA
+			, RCPT_REASON
+			, RCPT_LAW01
+			, RCPT_LAW02
+			, RCPT_LAW03
+			, RCPT_REG_ID
+			, RCPT_REG_DATE
+			, RCPT_STATUS
+			, RCPT_STATUS_CODE
+			, RCPT_VIEW
+			, RCPT_A_VIEW
+			, AGD_ADM_YN
+			, RCPT_STATUS_LAST
+			, RCPT_AGENDA_CNT
+			, RCPT_FIX_DATE
+		) values (
+		        #{rcptIdx}
+		        , #{rcptTypeCode}
+		        , #{rcptComType}
+		        , #{rcptCompanyNm}
+		        , #{rcptRegiNum}
+		        , #{rcptCompanyCeo}
+		        , #{rcptCompanyPost}
+		        , #{rcptCompanyAdd}
+		        , #{rcptCompanyAdd2}
+		        , #{rcptCompanyPhone}
+		        , #{rcptCompanyBPost}
+		        , #{rcptCompanyBAdd}
+		        , #{rcptCompanyBAdd2}
+		        , #{rcptCompanyBPhone}
+		        , #{rcptPmName}
+		        , #{rcptPmDept}
+		        , #{rcptPmPosition}
+		        , #{rcptPmPhone1}
+		        , #{rcptPmPhone2}
+		        , #{rcptPmPhone3}
+		        , #{rcptPmMobile1}
+		        , #{rcptPmMobile2}
+		        , #{rcptPmMobile3}
+		        , #{rcptPmEmail}
+		        , #{rcptTechForm}
+		        , #{rcptExReasonSale}
+		        , #{rcptExReasonSCom}
+		        , #{rcptExReasonTrans}
+		        , #{rcptExReasonTCom}
+		        , #{rcptExReasonEtc}
+		        , #{rcptExReasonECom}
+		        , #{rcptExDate}
+		        , #{rcptTechQua}
+		        , #{rcptReason}
+		        , #{rcptLaw01}
+		        , #{rcptLaw02}
+		        , #{rcptLaw03}
+		        , #{rcptRegId}
+		        , NOW()
+		        , #{rcptStatus}
+		        , #{rcptStatusCode}
+		        , #{rcptView}
+		        , #{rcptAView}
+		        , #{agdAdmYn}
+		        , NOW()
+		        , #{rcptAgendaCnt}
+		        , NOW()
+		)
+	</insert>
+	<insert id="saveReceiptStat" parameterType="expertReceiptVO">
+		/**
+		 * 접수 생성
+		 * ExpertReceiptMapper > saveReceipt
+		 */
+		insert into  kaits_receipt_stat (
+			RCPT_CODE
+			, RCPT_COM_CODE
+			, RCPT_META_CODE
+			, RCPT_COM_TYPE
+			, RCPT_REG_ID
+			, RCPT_REG_DATE
+			, RCPT_STATUS
+			, RCPT_STATUS_CODE
+			, RCPT_VIEW
+			, RCPT_A_VIEW
+			, AGD_ADM_YN
+			, RCPT_STATUS_LAST
+			, RCPT_STATUS_LAST_ID
+			, RCPT_AGENDA_CNT
+			, RCPT_FIX_DATE
+		) values (
+		        #{rcptIdx}
+		        , #{rcptComCode}
+		        , #{rcptMetaCode}
+		        , #{rcptComType}
+		        , #{rcptRegId}
+		        , NOW()
+		        , #{rcptStatus}
+		        , #{rcptStatusCode}
+		        , #{rcptView}
+		        , #{rcptAView}
+		        , #{agdAdmYn}
+		        , NOW()
+		        , #{rcptRegId}
+		        , #{rcptAgendaCnt}
+		        , NOW()
+		)
+	</insert>
+	<insert id="saveMetaData" parameterType="expertReceiptVO">
+		/**
+		 * 메타데이터 생성
+		 * ExpertReceiptMapper > saveMetaData
+		 */
+		insert into  kaits_meta(
+			RCPT_META_CODE
+			, RCPT_TYPE_CODE
+			, RCPT_COM_CODE
+			, RCPT_TECH_FORM
+			, RCPT_EX_REASON_SALE
+			, RCPT_EX_REASON_S_COM
+			, RCPT_EX_REASON_TRANS
+			, RCPT_EX_REASON_T_COM
+			, RCPT_EX_REASON_ETC
+			, RCPT_EX_REASON_E_COM
+			, RCPT_EX_DATE
+			, RCPT_TECH_QUA
+			, RCPT_REASON
+			, RCPT_LAW01
+			, RCPT_LAW02
+			, RCPT_LAW03
+			, RCPT_STATUS_LAST
+		) values (
+		        #{rcptMetaCode}
+		        , #{rcptTypeCode}
+		        , #{rcptComCode}
+		        , #{rcptTechForm}
+		        , #{rcptExReasonSale}
+		        , #{rcptExReasonSCom}
+		        , #{rcptExReasonTrans}
+		        , #{rcptExReasonTCom}
+		        , #{rcptExReasonEtc}
+		        , #{rcptExReasonECom}
+		        , #{rcptExDate}
+		        , #{rcptTechQua}
+		        , #{rcptReason}
+		        , #{rcptLaw01}
+		        , #{rcptLaw02}
+		        , #{rcptLaw03}
+		        , NOW()
+		)
+	</insert>
+	<insert id="saveReceiptTech" parameterType="expertReceiptTechVO">
+		/**
+		 * 접수 분야 생성
+		 * ExpertReceiptMapper > saveReceiptTech
+		 */
+		insert into kaits_receipt_tech(
+		        RCPT_IDX
+		        , TECH_RCPT_NUM_SEQ
+		        , TECH_NTC_GID
+		        , TECH_NCT_CODE
+		        , TECH_UNIQ_ID
+		        , TECH_RCPT_TECH_NM
+		) values (
+		        #{rcptIdx}
+		        , #{techRcptNumSeq}
+		        , #{techNtcGid}
+		        , #{techNctCode}
+		        , #{techUniqId}
+		        , #{techRcptTechNm}
+		)
+	</insert>
+	<insert id="saveMetaTech" parameterType="expertReceiptTechVO">
+		/**
+		 * 접수 분야 생성
+		 * ExpertReceiptMapper > saveMetaTech
+		 */
+		insert into kaits_meta_tech(
+		        RCPT_META_CODE
+		        , TECH_RCPT_NUM_SEQ
+		        , TECH_NTC_GID
+		        , TECH_NCT_CODE
+		        , TECH_UNIQ_ID
+		        , TECH_RCPT_TECH_NM
+		) values (
+		        #{rcptMetaCode}
+		        , #{techRcptNumSeq}
+		        , #{techNtcGid}
+		        , #{techNctCode}
+		        , #{techUniqId}
+		        , #{techRcptTechNm}
+		)
+	</insert>
+	<insert id="saveReceiptCountry" parameterType="expertReceiptCountryVO">
+		/**
+		 * 접수 분야 생성
+		 * ExpertReceiptMapper > saveReceiptCountry
+		 */
+		insert into kaits_receipt_contury (
+        		RCPT_IDX
+		        , CTY_RCPT_NUM_SEQ
+		        , CTY_TARGET_COUNTRY
+		        , CTY_BUYER
+		) values (
+		        #{rcptIdx}
+		        , #{ctyRcptNumSeq}
+		        , #{ctyTargetCountry}
+		        , #{ctyBuyer}
+		)
+	</insert>
+	<insert id="saveMetaCountry" parameterType="expertReceiptCountryVO">
+		/**
+		 * 접수 분야 생성
+		 * ExpertReceiptMapper > saveMetaCountry
+		 */
+		insert into kaits_meta_contury (
+        		RCPT_META_CODE
+		        , CTY_RCPT_NUM_SEQ
+		        , CTY_TARGET_COUNTRY
+		        , CTY_BUYER
+		) values (
+		        #{rcptMetaCode}
+		        , #{ctyRcptNumSeq}
+		        , #{ctyTargetCountry}
+		        , #{ctyBuyer}
+		)
+	</insert>
+	<insert id="saveMetaLinkAgenda" parameterType="expertAgendaStatVO">
+		/**
+		 * 접수 분야 생성
+		 * ExpertReceiptMapper > saveMetaCountry
+		 */
+		insert into kaits_meta_link_agd (
+        		LINK_META_CODE
+		        , LINK_AGD_CODE
+		) values (
+		        #{rcptMetaCode}
+		        , #{agdCode}
+		)
+	</insert>
+	<delete id="deleteMeta" parameterType="expertReceiptStatVO">
+		/**
+		 * 접수 분야 생성
+		 * ExpertReceiptMapper > deleteMeta
+		 */
+		delete from kaits_meta where rcpt_meta_code = #{rcptMetaCode}
+	</delete>
+	<select id="getNewCpnId" resultType="String">
+		select CONCAT('NC^', LPAD(IFNULL(MAX(SUBSTRING(kcm.CPN_ID, 4)),0) + 1, 7, 0)) AS CPN_ID 
+		from kaits_com_member kcm
+		where SUBSTRING(cpn_id, 1, 3) = 'NC^'
+	</select>
+	<insert id="saveComMember" parameterType="expertReceiptVO">
+		INSERT INTO kaits_com_member (
+		    CPN_ID
+		    , CPN_LOGIN_YN
+		    , CPN_S_NO
+		    , CPN_NM
+		    , CPN_CEO
+		    , CPN_B_ZIP
+		    , CPN_B_ADD1
+		    , CPN_B_ADD2
+		    , CPN_B_PHONE1
+		    , CPN_B_PHONE2
+		    , CPN_B_PHONE3
+		    , CPN_S_ZIP
+		    , CPN_S_ADD1
+		    , CPN_S_ADD2
+		    , CPN_S_PHONE1
+		    , CPN_S_PHONE2
+		    , CPN_S_PHONE3
+		    , CPN_P_NM
+		    , CPN_P_DEPT
+		    , CPN_P_POSITION
+		    , CPN_P_PHONE1
+		    , CPN_P_PHONE2
+		    , CPN_P_PHONE3
+		    , CPN_P_MOBILE1
+		    , CPN_P_MOBILE2
+		    , CPN_P_MOBILE3
+		    , CPN_P_EMAIL
+		    , CPN_STAT
+		)
+		VALUES (
+		    #{rcptComCode}
+		    , 'N'
+		    , #{rcptRegiNum}
+		    , #{rcptCompanyNm}
+		    , #{rcptCompanyCeo}
+		    , #{rcptCompanyPost}
+		    , #{rcptCompanyAdd}
+		    , #{rcptCompanyAdd2}
+		    , #{rcptCompanyPhone1}
+		    , #{rcptCompanyPhone2}
+		    , #{rcptCompanyPhone3}
+		    , #{rcptCompanyBPost}
+		    , #{rcptCompanyBAdd}
+		    , #{rcptCompanyBAdd2}
+		    , #{rcptCompanyBPhone1}
+		    , #{rcptCompanyBPhone2}
+		    , #{rcptCompanyBPhone3}
+		    , #{rcptPmName}
+		    , #{rcptPmDept}
+		    , #{rcptPmPosition}
+		    , #{rcptPmPhone1}
+		    , #{rcptPmPhone2}
+		    , #{rcptPmPhone3}
+		    , #{rcptPmMobile1}
+		    , #{rcptPmMobile2}
+		    , #{rcptPmMobile3}
+		    , #{rcptPmEmail}
+		    , '400'
+		)
+	</insert>
+	<select id="setReceiptCnt" parameterType="expertReceiptVO" resultType="int">
+		SELECT count(*) as CNT
+		FROM
+		  kaits_receipt_stat
+		WHERE 
+			1=1
+		AND RCPT_CODE= #{rcptCode}
+	    AND RCPT_REG_ID = #{admId}
+	
+	</select>
+	
+	<update id="setDelete" parameterType="expertReceiptVO">
+		/**
+		 * 접수 상태 변경 (반려 / 반려회수 / 승인 / 승인회수)
+		 * ExpertReceiptMapper > updateReceiptStatus
+		 */
+		update kaits_receipt_stat set 
+			  RCPT_VIEW ="N"
+			, RCPT_A_VIEW="N"
+		where 1=1
+		and RCPT_CODE= #{rcptCode}
+	</update>
+</mapper>

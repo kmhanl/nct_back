@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kaits.nct.research.mapper.ResearchMapper">
+	<select id="getResearchList" parameterType="ResearchVO" resultType="ResearchVO">
+		SELECT
+			RSC_CODE
+			,RSC_TITLE
+			,RSC_SPONSOR
+			,RSC_MEMO
+			,RSC_STR_DATE
+			, date_format(RSC_STR_DATE, '%Y년 %m월 %d일') as RSC_STR_DATE8_KO
+			,RSC_END_DATE
+			, date_format(RSC_END_DATE, '%Y년 %m월 %d일') as RSC_END_DATE8_KO
+			,RSC_STATUS
+			, CASE RSC_STATUS WHEN 'TS' THEN '준비중' END AS RSC_STATUS_NM
+			,RSC_REG_DATE
+			, date_format(RSC_REG_DATE, '%Y-%m-%d') as RSC_REG_DATE8_KO
+			,RSC_REG_ID
+		FROM kaits_research_stat kam
+		ORDER BY RSC_CODE DESC
+	</select>
+	
+	<insert id="InsertMember" parameterType="IntoMemVO">
+		/** 현황 실태조사 > 임시 저장  **/
+		INSERT INTO kaits_research_member (
+			RSC_MEM_CODE
+			,RSC_CODE
+			,RSC_INVI_KEY
+			,RSC_MEM_COMPANY
+			,RSC_MEM_COM_CODE
+			,RSC_MEM_NAME
+			,RSC_MEM_EMAIL
+		) VALUES (
+	        #{rscMemCode}
+	        , #{rscCode}
+	        , #{rscInviKey}
+	        , #{rscMemCompany}
+	        , #{rscMemComCode}
+	        , #{rscMemName}
+	        , #{rscMemEmail}
+	    )
+		
+	</insert>
+	<select id="getTargetList" parameterType="ResearchMemberVO" resultType="ResearchMemberVO">
+		/** 실태조사 테스트 이메일 발송 대상 기업 리스트 조회  **/
+		SELECT
+			RSC_CODE
+			,RSC_MEM_CODE
+			,RSC_INVI_KEY
+			,RSC_MEM_COMPANY
+			,RSC_MEM_COM_CODE
+			,RSC_MEM_NAME
+			,RSC_MEM_PHONE
+			,RSC_MEM_EMAIL
+			,RSC_STATUS
+		FROM kaits_research_member
+		WHERE 1=1
+			AND RSC_CODE =  #{rscCode}
+			AND RSC_STATUS = 'RD'
+			AND RSC_INTO_FLAG = 'Y'
+		ORDER BY RSC_MEM_CODE DESC
+	</select>
+	<select id="getTargetTestList" parameterType="ResearchMemberVO" resultType="ResearchMemberVO">
+		/** 실태조사 테스트 이메일 발송 대상 기업 리스트 조회  **/
+		SELECT
+			RSC_CODE
+			,RSC_MEM_CODE
+			,RSC_INVI_KEY
+			,RSC_MEM_COMPANY
+			,RSC_MEM_COM_CODE
+			,RSC_MEM_NAME
+			,RSC_MEM_PHONE
+			,RSC_MEM_EMAIL
+			,RSC_STATUS
+		FROM kaits_research_member
+		WHERE 1=1
+			AND RSC_CODE =  #{rscCode}
+			AND RSC_STATUS = 'RD'
+			AND RSC_INTO_FLAG = 'T'
+		ORDER BY RSC_MEM_CODE DESC
+	</select>
+	<select id="getTarget01List" parameterType="ResearchMemberVO" resultType="ResearchMemberVO">
+		/** 실태조사 테스트 이메일 발송 대상 기업 리스트 조회  **/
+		SELECT
+			RSC_CODE
+			,RSC_MEM_CODE
+			,RSC_INVI_KEY
+			,RSC_MEM_COMPANY
+			,RSC_MEM_COM_CODE
+			,RSC_MEM_NAME
+			,RSC_MEM_PHONE
+			,RSC_MEM_EMAIL
+			,RSC_STATUS
+		FROM kaits_research_member
+		WHERE 1=1
+			AND RSC_CODE =  #{rscCode}
+			AND RSC_STATUS = 'RD'
+			AND RSC_INTO_FLAG = 'C1'
+		ORDER BY RSC_MEM_CODE DESC
+	</select>
+</mapper>

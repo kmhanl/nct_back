@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kaits.nct.research.mapper.ResearchMemberMapper">
+	<select id="ResearchLoginCheck" parameterType="researchMemberVO" resultType="researchMemberVO">
+		SELECT
+			RSC_MEM_CODE
+			,RSC_CODE
+			,RSC_MEM_COMPANY
+			,RSC_MEM_COM_CODE
+			,RSC_MEM_NAME
+			,RSC_MEM_PHONE
+			,RSC_MEM_EMAIL
+			,RSC_MEM_PASSWORD
+			,RSC_MEMO
+			,RSC_STR_DATE
+			, date_format(RSC_STR_DATE, '%Y년 %m월 %d일') as RSC_STR_DATE8_KO
+			,RSC_END_DATE
+			, date_format(RSC_END_DATE, '%Y년 %m월 %d일') as RSC_END_DATE8_KO
+			,RSC_STATUS
+			, CASE RSC_STATUS WHEN 'RD' THEN '인증전' WHEN 'IN' THEN '입력중' WHEN 'CO' THEN '제출완료' END AS RSC_STATUS_NM
+		FROM kaits_research_member kam
+		WHERE 1=1
+			AND kam.RSC_CODE = #{rscCode}
+		<if test="rscMemPhone != null">
+			AND kam.RSC_MEM_PHONE = #{rscMemPhone}
+		</if>
+		<if test="rscMemPassword != null">
+		  	AND kam.RSC_MEM_PASSWORD = #{rscMemPassword}
+	  	</if>
+		<if test="rscMemPhone neq null and rscMemPassword neq null">
+			LIMIT 1
+		</if>
+	</select>
+	
+</mapper>

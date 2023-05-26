@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kaits.nct.policy.mapper.PolicyMapper">
+	<!--  기업 포털 접수 하기 리스트 조회  -->
+	<select id="getPolicyList" parameterType="PolicyVO" resultType="PolicyVO">
+		SELECT 
+		    POLICY_CODE
+			,POLICY_DEPTH
+			,POLICY_TYPE
+			,POLICY_TITLE
+			,POLICY_CONTENT
+			,POLICY_ID
+			,POLICY_PW_YN
+			,POLICY_PASSWORD
+			,POLICY_VIEW_YN
+			,POLICY_DATE
+			,POLICY_DATE
+			,date_format(POLICY_DATE, '%Y-%m-%d') as POLICY_DATE8_KO
+		FROM kaits_policy
+		WHERE 1=1
+		ORDER BY POLICY_DATE DESC
+	</select>
+	<!--  기업 포털 접수 하기 View 조회  -->
+	<select id="getPolicyView" parameterType="PolicyVO" resultType="PolicyVO">
+		SELECT 
+		    POLICY_CODE
+			,POLICY_DEPTH
+			,POLICY_TYPE
+			,POLICY_TITLE
+			,POLICY_CONTENT
+			,POLICY_ID
+			,POLICY_PW_YN
+			,POLICY_PASSWORD
+			,POLICY_VIEW_YN
+			,POLICY_DATE
+			,POLICY_DATE
+			,date_format(POLICY_DATE, '%Y-%m-%d') as POLICY_DATE8_KO
+		FROM kaits_policy
+		WHERE 1=1
+			AND POLICY_CODE = #{policyCode}
+	</select>
+	<select id="getPolicyCode" resultType="String">
+		/** 새로운 접수번호 채번 - **/
+		SELECT CONCAT(DATE_FORMAT(NOW(),'%Y'),'-',DATE_FORMAT(NOW(),'%m'),'-',LPAD(IFNULL(MAX(RIGHT(POLICY_CODE,4)),0)+1,4,'0')) AS POLICY_CODE
+		FROM kaits_policy WHERE SUBSTRING(POLICY_CODE,1,7) = CONCAT(DATE_FORMAT(NOW(),'%Y'),'-',DATE_FORMAT(NOW(),'%m'))
+	</select>
+	
+	<insert id="InsertPolicyData" parameterType="PolicyVO">
+		/** 신규  메타 데이터 저장  - ReceiptMapper > getNewMetaCode  **/
+		insert into  kaits_policy(
+			POLICY_CODE
+			,POLICY_DEPTH
+			,POLICY_TYPE
+			,POLICY_TITLE
+			,POLICY_CONTENT
+			,POLICY_ID
+			,POLICY_PW_YN
+			,POLICY_PASSWORD
+			,POLICY_VIEW_YN
+			,POLICY_DATE
+		) values (
+	        #{policyCode}
+	        , #{policyDepth}
+	        , #{policyType}
+	        , #{policyTitle}
+	        , #{policyContent}
+	        , #{policyId}
+	        , #{policyPwYn}
+	        , #{policyPassword}
+	        , 'N'
+	        , NOW()
+	    )
+	</insert>
+	<select id="policyFileList" parameterType="EndFileVO" resultType="EndFileVO">
+		SELECT 
+			idx.FILE_IDX
+			,idx.FILE_CODE
+			,idx.FILE_DEPTH
+			,idx.FILE_TYPE
+			,idx.FILE_SORT
+			,idx.FILE_AGD_IDX
+			,idx.FILE_VIEW
+			,idx.FILE_REG_ID
+			,mst.FILE_NM
+			,mst.FILE_ORIGIN_NM
+			,mst.FILE_PATH
+			,mst.FILE_SIZE
+			,mst.FILE_KEY
+		FROM kaits_file_idx idx
+		LEFT JOIN kaits_file_mst mst 
+			ON mst.FILE_CODE = idx.FILE_CODE
+		WHERE 1=1 
+			AND idx.FILE_REG_ID = #{fileRegId}
+			AND idx.FILE_DEPTH = 'PO'
+			AND idx.FILE_TYPE = '1001'
+		ORDER BY idx.FILE_REG_DATE DESC
+	</select>
+	
+	<update id="UpdataPolicyData" parameterType="PolicyVO">
+		/** 신규  메타 데이터 저장  - ReceiptMapper > getNewMetaCode  **/
+		UPDATE  kaits_policy SET 
+			 POLICY_DEPTH =  #{policyDepth}
+			,POLICY_TYPE = #{policyType}
+			,POLICY_TITLE = #{policyTitle}
+			,POLICY_CONTENT = #{policyContent}
+			,POLICY_ID = #{policyId}
+			,POLICY_PW_YN = #{policyPwYn}
+			,POLICY_PASSWORD = #{policyPassword}
+		 WHERE
+		    POLICY_CODE = #{policyCode}
+	</update>
+	<select id="getPassword" parameterType="PolicyVO" resultType="int">
+	 SELECT count(*) AS cnt from kaits_policy where POLICY_CODE = #{policyCode} and POLICY_PASSWORD = #{policyPassword}
+	</select>
+	<update id="setUpData" parameterType="PolicyVO">
+		/** 신규  메타 데이터 저장  - ReceiptMapper > getNewMetaCode  **/
+		UPDATE  kaits_policy SET 
+			 POLICY_ANSWER =  #{policyAnswer}
+			,POLICY_VIEW_YN = #{policyViewYn}
+			,POLICY_SIGN_ID = #{policySignId}
+		 WHERE
+		    POLICY_CODE = #{policyCode}
+	</update>
+</mapper>

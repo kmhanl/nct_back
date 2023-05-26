@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kaits.nct.board.mapper.BoardMapper">
+
+	<select id="getInfoBoardCode" resultType="String">
+		/** 새로운 접수번호 채번 - **/
+		SELECT CONCAT(DATE_FORMAT(NOW(),'%Y'),'-',DATE_FORMAT(NOW(),'%m'),'-',LPAD(IFNULL(MAX(RIGHT(INFO_BOARD_CODE,4)),0)+1,4,'0')) AS INFO_BOARD_CODE
+		FROM kaits_info_board WHERE SUBSTRING(INFO_BOARD_CODE,1,7) = CONCAT(DATE_FORMAT(NOW(),'%Y'),'-',DATE_FORMAT(NOW(),'%m'))
+	</select>
+	<insert id="InsertBoardData" parameterType="BoardVO">
+		/** 신규  메타 데이터 저장  - ReceiptMapper > getNewMetaCode  **/
+		insert into  kaits_info_board(
+			 INFO_BOARD_CODE
+			,INFO_BOARD_TITLE
+			,INFO_BOARD_CONTENT
+			,INFO_BOARD_ID
+			,INFO_BOARD_VIEW_YN
+			,INFO_BOARD_DATE
+		) values (
+	          #{infoBoardCode}
+	        , #{infoBoardTitle}
+	        , #{infoBoardContent}
+	        , #{infoBoardId}
+	        , 'N'
+	        , NOW()
+	    )
+	</insert>
+	<update id="UpdataBoardData" parameterType="BoardVO">
+		/** 신규  메타 데이터 저장  - ReceiptMapper > getNewMetaCode  **/
+		UPDATE  kaits_info_board SET 
+			 INFO_BOARD_TITLE =  #{infoBoardTitle}
+			,INFO_BOARD_CONTENT = #{infoBoardContent}
+			,INFO_BOARD_VIEW_YN = #{infoBoardViewYn}
+			,INFO_BOARD_ID = #{infoBoardId}
+		 WHERE
+		    INFO_BOARD_CODE = #{infoBoardCode}
+	</update>
+	<select id="getBoardView" parameterType="BoardVO" resultType="BoardVO">
+		SELECT 
+		     INFO_BOARD_CODE
+			,INFO_BOARD_TITLE
+			,INFO_BOARD_CONTENT
+			,INFO_BOARD_VIEW_YN
+			,INFO_BOARD_ID
+			,date_format(INFO_BOARD_DATE, '%Y-%m-%d') as POLICY_DATE8_KO
+		FROM kaits_info_board
+		WHERE 1=1
+			AND INFO_BOARD_CODE = #{infoBoardCode}
+	</select>
+	<select id="getBoardList" parameterType="BoardVO" resultType="BoardVO">
+		SELECT 
+		     INFO_BOARD_CODE
+			,INFO_BOARD_TITLE
+			,INFO_BOARD_CONTENT
+			,INFO_BOARD_ID
+			,INFO_BOARD_DATE
+			,date_format(INFO_BOARD_DATE, '%Y-%m-%d') as POLICY_DATE8_KO
+			,INFO_BOARD_VIEW_YN
+		FROM kaits_info_board
+		WHERE 1=1
+		ORDER BY INFO_BOARD_DATE DESC
+	</select>
+	
+	<select id="boardFileList" parameterType="EndFileVO" resultType="EndFileVO">
+		SELECT 
+			idx.FILE_IDX
+			,idx.FILE_CODE
+			,idx.FILE_DEPTH
+			,idx.FILE_TYPE
+			,idx.FILE_SORT
+			,idx.FILE_AGD_IDX
+			,idx.FILE_VIEW
+			,idx.FILE_REG_ID
+			,mst.FILE_NM
+			,mst.FILE_ORIGIN_NM
+			,mst.FILE_PATH
+			,mst.FILE_SIZE
+			,mst.FILE_KEY
+		FROM kaits_file_idx idx
+		LEFT JOIN kaits_file_mst mst 
+			ON mst.FILE_CODE = idx.FILE_CODE
+		WHERE 1=1 
+			AND idx.FILE_REG_ID = #{fileRegId}
+			AND idx.FILE_DEPTH = 'PO'
+			AND idx.FILE_TYPE = '1001'
+		ORDER BY idx.FILE_REG_DATE DESC
+	</select>
+
+
+
+
+
+</mapper>

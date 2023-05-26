@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kaits.nct.common.mapper.SendMapper">
+	<insert id="insertSmsHistory" parameterType="smsVO">
+		INSERT INTO kaits_sms_history (
+		    COMMITTEE_IDX
+		    , SMS_HIS_MODE
+		    , SMS_HIS_TYPE
+		    , SMS_HIS_TIT
+		    , SMS_HIS_MSG
+		    , SMS_HIS_NAME
+		    , SMS_HIS_COM
+		    , SMS_HIS_PHONE
+		    , SMS_HIS_RDATE
+		    , SMS_HIS_STATUS
+		    , SMS_HIS_STATUS_MSG
+		    , SMS_HIS_DIRECT_SEND_STATUS
+		    , SMS_REG_ID)
+		VALUES (
+			#{committeeIdx}
+			, #{smsHisMode}
+			, #{smsHisType}
+			, #{smsHisTit}
+			, #{smsHisMsg}
+			, #{smsHisName}
+			, #{smsHisCom}
+			, #{smsHisPhone}
+			, #{smsHisRdate}
+			, #{smsHisStatus}
+			, #{smsHisStatusMsg}
+			, #{smsHisDirectSendStatus}
+			, #{smsRegId}
+		)
+	</insert>
+</mapper>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kaits.nct.system.mapper.SystemTechMapper"> <!-- src/main/java/kaits.nct.system.mapper 하위의 SystemTechMapper-->
+	<select id="getTechList" resultType="SystemTechVO" parameterType="SystemTechVO">
+		select 
+			TECH_ID
+			,TECH_NAME
+			,TECH_SORT
+			,TECH_DEL_YN
+			,TECH_SHW_YN
+			,TECH_USE_YN
+			,TECH_REG
+			,TECH_REG_ID
+			,TECH_UPDATE
+			,TECH_UPDATE_ID
+		from 
+			kaits_tech
+		
+	</select>
+</mapper>

@@ -1,0 +1,999 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kaits.nct.expert.mapper.ExpertCommitteeMapper">
+	<select id="getNewCommitteeIdx" parameterType="expertCommitteeVO" resultType="String">
+		/**
+		 * 새로운 전문위원회 번호 조회
+		 * ExpertCommitteeMapper > getNewCommitteeIdx
+		
+		SELECT CONCAT(#{committeeYear},'-',LPAD(IFNULL(MAX(COMMITTEE_NUM),0)+1,6,'0')) AS COMMITTEE_IDX
+		FROM kaits_ex_commit_info WHERE committee_year = #{committeeYear} */
+		SELECT CONCAT(#{committeeYear},'-',LPAD(IFNULL(MAX(SUBSTRING(COMMITTEE_IDX,6,6)),0)+1,6,'0')) AS COMMITTEE_IDX
+		FROM kaits_ex_commit_info WHERE committee_year = #{committeeYear}
+	</select>
+	<insert id="saveCommitteeInfo" parameterType="expertCommitteeVO">
+		INSERT INTO kaits_ex_commit_info (
+			COMMITTEE_IDX
+			, COMMITTEE_TECH_ID
+			, COMMITTEE_YEAR
+			, COMMITTEE_NUM
+			, COMMITTEE_TECH_NUM
+			, COMMITTEE_TYPE
+			, COMMITTEE_DATE_PICK_S
+			, COMMITTEE_DATE_PICK_E
+			, COMMITTEE_DATE_PICK_1
+			, COMMITTEE_DATE_ADD_1
+			, COMMITTEE_DATE_PICK_2
+			, COMMITTEE_DATE_ADD_2
+			, COMMITTEE_DATE_PICK_3
+			, COMMITTEE_DATE_ADD_3
+			, COMMITTEE_DATE_PICK
+			, COMMITTEE_MODI_S
+			, COMMITTEE_MODI_E
+			, COMMITTEE_STATUS
+			, COMMITTEE_CONFIRM_YN
+			, LAST_UPDT
+			, LAST_UPDUSR_ID
+		) VALUES (
+		    #{committeeIdx}
+			, #{committeeTechId}
+			, #{committeeYear}
+			, #{committeeNum}
+			, #{committeeTechNum}
+			, #{committeeType}
+			, #{committeeDatePickS}
+			, #{committeeDatePickE}
+			, #{committeeDatePick1}
+			, #{committeeDateAdd1}
+			, #{committeeDatePick2}
+			, #{committeeDateAdd2}
+			, #{committeeDatePick3}
+			, #{committeeDateAdd3}
+			, #{committeeDatePick}
+			, #{committeeModiS}
+			, #{committeeModiE}
+			, #{committeeStatus}
+			, #{committeeConfirmYn}
+			, NOW()
+			, #{lastUpdusrId}
+		)
+	</insert>
+	<insert id="saveCommitteeMember" parameterType="expertCommitteeMemberVO">
+		INSERT INTO kaits_ex_commit_member (
+		    COMMITTEE_IDX
+		    , ADM_ID
+		    , COMMITTEE_OPT_YN
+		) VALUES (
+		    #{committeeIdx}
+		    , #{admId}
+		    , #{committeeOptYn}
+		)
+	</insert>
+	<update id="updateCommitteeAgreeView" parameterType="expertCommitteeMemberVO">
+		UPDATE kaits_ex_commit_member SET
+			<if test="committeeSignViewYn != null">
+				COMMITTEE_SIGN_VIEW_YN = #{committeeSignViewYn}
+				,COMMITTEE_SIGN_VIEW = #{committeeSignView}
+			</if>
+			<if test="committeeSignWriteYn != null">
+				COMMITTEE_SIGN_WRITE_YN = #{committeeSignWriteYn}
+				,COMMITTEE_SIGN_WRITE = #{committeeSignWrite}
+			</if>
+			<if test="committeeSignSaveYn != null">
+				COMMITTEE_SIGN_SAVE_YN = #{committeeSignSaveYn}
+				,COMMITTEE_SIGN_SAVE = #{committeeSignSave}
+			</if>
+		WHERE COMMITTEE_IDX = #{committeeIdx} AND ADM_ID = #{admId}
+	</update>
+	
+	<!-- , COMMITTEE_SIGN_VIEW = #{committeeSignView} -->
+	<update id="updateAgendaAfterSaveCommittee" parameterType="expertAgendaStatVO">
+		UPDATE kaits_agenda_stat SET
+			AGD_EX_IDX = #{agdExIdx}
+			, AGD_EX_SORT = #{index}
+			, AGD_STATUS = #{agdStatus}
+			, AGD_STATUS_LAST = NOW()
+			, AGD_STATUS_LAST_ID = #{admId}
+		WHERE AGD_CODE = #{agdCode}
+	</update>
+	<select id="getCommitteeList" parameterType="expertCommitteeVO"  resultType="expertCommitteeVO">
+		SELECT 
+			keci.COMMITTEE_IDX
+			, keci.COMMITTEE_TECH_ID
+			, kt.TECH_NAME AS COMMITTEE_TECH_NAME
+			, keci.COMMITTEE_YEAR
+			, keci.COMMITTEE_NUM
+			, keci.COMMITTEE_TECH_NUM
+			, keci.COMMITTEE_AGD_CNT
+			, keci.COMMITTEE_AMG03_CNT
+			, keci.COMMITTEE_AMG04_CNT
+			, keci.COMMITTEE_AMG05_CNT
+			, keci.COMMITTEE_AMG06_CNT
+			, keci.COMMITTEE_TYPE
+			, keci.COMMITTEE_DATE_PICK_S
+			, keci.COMMITTEE_DATE_PICK_E
+			, <![CDATA[IF(STR_TO_DATE(keci.COMMITTEE_DATE_PICK_S, '%Y%m%d%H%i%s') <= NOW() AND STR_TO_DATE(keci.COMMITTEE_DATE_PICK_E, '%Y%m%d%H%i%s') >= NOW(), 'Y','N') AS DATE_CHECK_YN]]>
+			, keci.COMMITTEE_DATE_PICK_1
+			, keci.COMMITTEE_DATE_ADD_1
+			, keci.COMMITTEE_DATE_PICK_2
+			, keci.COMMITTEE_DATE_ADD_2
+			, keci.COMMITTEE_DATE_PICK_3
+			, keci.COMMITTEE_DATE_ADD_3
+			, keci.COMMITTEE_DATE_PICK
+			, keci.COMMITTEE_MODI_S
+			, keci.COMMITTEE_MODI_E
+			, keci.COMMITTEE_CONFIRM_YN
+			, keci.COMMITTEE_STATUS
+			, FUN_GET_BASE_CODE_NAME('A001',keci.COMMITTEE_STATUS) AS COMMITTEE_STATUS_NAME
+			, keci.LAST_UPDT
+			, DATE_FORMAT(keci.LAST_UPDT, '%Y.%m.%d') AS LAST_UPDT_DISP
+			, keci.LAST_UPDUSR_ID
+			, (
+			<if test="admId eq null">
+				SELECT COUNT(*) FROM kaits_agenda_stat kas WHERE kas.AGD_EX_IDX = keci.COMMITTEE_IDX
+			</if>
+			<if test="admId neq null">
+				select COUNT(*) 
+				from kaits_ex_commit_opinion keco 
+				where keco.COMMITTEE_IDX = keci.COMMITTEE_IDX
+					and keco.COMMITTEE_ADM_ID = #{admId}
+					and keco.COMMITTEE_OPT_STATUS != 'DD'
+			</if>
+				) AS AGD_CNT
+			, (SELECT COUNT(*) FROM kaits_ex_commit_member skecm WHERE skecm.COMMITTEE_IDX = keci.COMMITTEE_IDX AND skecm.COMMITTEE_DATE_PICK = 'Y' ) AS COMMITTEE_MEMBER_CNT
+			, (SELECT COUNT(*) FROM kaits_ex_commit_member skeco WHERE skeco.COMMITTEE_IDX = keci.COMMITTEE_IDX AND skeco.COMMITTEE_OPT_COM = 'Y' ) AS COMMITTEE_OPINION_Y_CNT
+			, (SELECT COUNT(*) FROM kaits_ex_commit_member skeco WHERE skeco.COMMITTEE_IDX = keci.COMMITTEE_IDX AND skeco.COMMITTEE_OPT_COM = 'N' ) AS COMMITTEE_OPINION_N_CNT
+			<if test="admGroup == 'AMG05' or  admGroup == 'AMG06'">
+			<if test="admId != null">
+			, kecm.COMMITTEE_DATE_PICK as COMMITTEE_DATE_PICK_MEMBER
+			</if>
+			</if>
+		FROM kaits_ex_commit_info keci
+		INNER JOIN kaits_tech kt
+			ON kt.TECH_ID = keci.COMMITTEE_TECH_ID
+		<if test="admGroup == 'AMG04'">
+		WHERE keci.COMMITTEE_TECH_ID IN (
+			select kaa.ADM_AUTH_TECH
+			from kaits_admin_authority kaa
+			where 1=1
+				and kaa.ADM_AUTH_ID = #{admId}
+		)
+			<if test="committeeIdx eq null and isDatepick">
+				AND keci.COMMITTEE_CONFIRM_YN = 'N'
+			</if>
+			<if test="committeeIdx eq null and !isDatepick">
+				AND keci.COMMITTEE_CONFIRM_YN = 'Y'
+			</if>
+			<if test="committeeStatus != null">
+				AND keci.COMMITTEE_STATUS = #{committeeStatus}
+			</if>
+			<if test="committeeIdx != null">
+				AND keci.COMMITTEE_IDX = #{committeeIdx}
+			</if>
+		</if>
+		<if test="admGroup == 'AMG05' or  admGroup == 'AMG06'">
+			<if test="admId != null">
+			INNER JOIN kaits_ex_commit_member kecm
+				ON kecm.COMMITTEE_IDX = keci.COMMITTEE_IDX
+				AND kecm.ADM_ID = #{admId}
+			WHERE 1=1
+				AND keci.COMMITTEE_STATUS IN ('CE','CI')
+				<![CDATA[AND keci.COMMITTEE_MODI_E >= DATE_FORMAT(NOW(),'%Y%m%d%H%i%s')]]>
+				<if test="committeeIdx != null">
+					AND keci.COMMITTEE_IDX = #{committeeIdx}
+				</if>
+			</if>
+			<if test="admId == null">
+				<if test="committeeIdx != null">
+					WHERE keci.COMMITTEE_IDX = #{committeeIdx}
+				</if>
+			</if>
+		</if>
+		<if test="admGroup != 'AMG04' and admGroup != 'AMG05' and admGroup != 'AMG06'">
+		WHERE 1=1
+			<if test="committeeIdx eq null and isDatepick">
+				AND keci.COMMITTEE_CONFIRM_YN = 'N'
+			</if>
+			<if test="committeeIdx eq null and !isDatepick">
+				AND keci.COMMITTEE_CONFIRM_YN = 'Y'
+			</if>
+			<if test="committeeStatus != null">
+				AND keci.COMMITTEE_STATUS = #{committeeStatus}
+			</if>
+			<if test="committeeIdx != null">
+				AND keci.COMMITTEE_IDX = #{committeeIdx}
+			</if>
+		</if>
+		ORDER BY keci.COMMITTEE_IDX DESC
+	</select>
+	<select id="getDatePList" parameterType="expertCommitteeVO"  resultType="expertCommitteeVO">
+		SELECT 
+			inf.COMMITTEE_IDX
+			,inf.COMMITTEE_TECH_ID
+			,kt.TECH_NAME AS COMMITTEE_TECH_NAME
+			,inf.COMMITTEE_YEAR
+			,inf.COMMITTEE_NUM
+			,mem.ADM_ID AS MEM_IN_YN
+			,inf.COMMITTEE_TECH_NUM
+			,inf.COMMITTEE_AGD_CNT
+			,inf.COMMITTEE_AMG03_CNT
+			,inf.COMMITTEE_AMG04_CNT
+			,inf.COMMITTEE_AMG05_CNT
+			,inf.COMMITTEE_AMG06_CNT
+			,inf.COMMITTEE_TYPE
+			,inf.COMMITTEE_DATE_PICK_S
+			,inf.COMMITTEE_DATE_PICK_E
+			, <![CDATA[IF(STR_TO_DATE(inf.COMMITTEE_DATE_PICK_S, '%Y%m%d%H%i%s') <= NOW() AND STR_TO_DATE(inf.COMMITTEE_DATE_PICK_E, '%Y%m%d%H%i%s') >= NOW(), 'Y','N') AS DATE_CHECK_YN]]>
+			, <![CDATA[IF(STR_TO_DATE(inf.COMMITTEE_DATE_PICK_S, '%Y%m%d%H%i%s') <= NOW(), 'Y','N') AS DATE_CHECK_STR_YN]]>
+			, <![CDATA[IF(STR_TO_DATE(inf.COMMITTEE_DATE_PICK_E, '%Y%m%d%H%i%s') >= NOW(), 'Y','N') AS DATE_CHECK_END_YN]]>
+			,inf.COMMITTEE_DATE_PICK_1
+			,inf.COMMITTEE_DATE_ADD_1
+			,inf.COMMITTEE_DATE_PICK_2
+			,inf.COMMITTEE_DATE_ADD_2
+			,inf.COMMITTEE_DATE_PICK_3
+			,inf.COMMITTEE_DATE_ADD_3
+			,inf.COMMITTEE_DATE_PICK
+			,inf.COMMITTEE_MODI_S
+			,inf.COMMITTEE_MODI_E
+			,inf.COMMITTEE_STATUS
+			,inf.COMMITTEE_CONFIRM_YN
+			,inf.LAST_UPDT
+			,inf.LAST_UPDUSR_ID
+			,(SELECT COUNT(*) FROM kaits_ex_commit_member skecm WHERE skecm.COMMITTEE_IDX = inf.COMMITTEE_IDX AND skecm.COMMITTEE_DATE_PICK = 'Y' ) AS COMMITTEE_MEMBER_CNT
+		FROM kaits_ex_commit_info inf
+		LEFT JOIN kaits_tech kt
+			ON kt.TECH_ID = inf.COMMITTEE_TECH_ID
+		INNER JOIN kaits_admin_authority auth
+			ON auth.ADM_AUTH_TECH = inf.COMMITTEE_TECH_ID
+			AND auth.ADM_AUTH_ID = #{admId}
+		LEFT JOIN kaits_ex_commit_member mem
+			ON inf.COMMITTEE_IDX = mem.COMMITTEE_IDX
+			AND mem.ADM_ID = #{admId}
+		WHERE 1=1
+			AND inf.COMMITTEE_STATUS = 'DP'
+			AND inf.COMMITTEE_CONFIRM_YN = 'N'
+		ORDER BY inf.COMMITTEE_IDX DESC
+	</select>
+	
+	<select id="getExpMemList" parameterType="expertCommitteeVO"  resultType="expertCommitteeVO">
+		SELECT 
+			inf.COMMITTEE_IDX
+			,NOW() AS T_NOW
+			,<![CDATA[IF(STR_TO_DATE(inf.COMMITTEE_DATE_PICK_S, '%Y%m%d%H%i%s') <= NOW() AND STR_TO_DATE(inf.COMMITTEE_DATE_PICK_E, '%Y%m%d%H%i%s') >= NOW(), 'Y','N') AS DATE_CHECK_YN]]>
+			,<![CDATA[IF(STR_TO_DATE(inf.COMMITTEE_DATE_PICK_S, '%Y%m%d%H%i%s') <= NOW(), 'Y','N') AS DATE_CHECK_STR_YN]]>
+			,<![CDATA[IF(STR_TO_DATE(inf.COMMITTEE_DATE_PICK_E, '%Y%m%d%H%i%s') >= NOW(), 'Y','N') AS DATE_CHECK_END_YN]]>
+			,inf.COMMITTEE_TECH_ID
+			,kt.TECH_NAME AS COMMITTEE_TECH_NAME
+			,inf.COMMITTEE_YEAR
+			,inf.COMMITTEE_NUM
+			,mem.ADM_ID AS MEM_IN_YN
+			,inf.COMMITTEE_TECH_NUM
+			,inf.COMMITTEE_AGD_CNT
+			,inf.COMMITTEE_AMG03_CNT
+			,inf.COMMITTEE_AMG04_CNT
+			,inf.COMMITTEE_AMG05_CNT
+			,inf.COMMITTEE_AMG06_CNT
+			,inf.COMMITTEE_TYPE
+			,inf.COMMITTEE_DATE_PICK_S
+			,inf.COMMITTEE_DATE_PICK_E
+			,inf.COMMITTEE_DATE_PICK_1
+			,inf.COMMITTEE_DATE_ADD_1
+			,inf.COMMITTEE_DATE_PICK_2
+			,inf.COMMITTEE_DATE_ADD_2
+			,inf.COMMITTEE_DATE_PICK_3
+			,inf.COMMITTEE_DATE_ADD_3
+			,inf.COMMITTEE_DATE_PICK
+			,inf.COMMITTEE_MODI_S
+			,inf.COMMITTEE_MODI_E
+			,inf.COMMITTEE_STATUS
+			,inf.COMMITTEE_CONFIRM_YN
+			,inf.LAST_UPDT
+			,inf.LAST_UPDUSR_ID
+			,(SELECT COUNT(*) FROM kaits_ex_commit_member skecm WHERE skecm.COMMITTEE_IDX = inf.COMMITTEE_IDX AND skecm.COMMITTEE_DATE_PICK = 'Y' ) AS COMMITTEE_MEMBER_CNT
+		FROM kaits_ex_commit_info inf
+		LEFT JOIN kaits_tech kt
+			ON kt.TECH_ID = inf.COMMITTEE_TECH_ID
+		INNER JOIN kaits_admin_authority auth
+			ON auth.ADM_AUTH_TECH = inf.COMMITTEE_TECH_ID
+			AND auth.ADM_AUTH_ID = #{admId}
+		LEFT JOIN kaits_ex_commit_member mem
+			ON inf.COMMITTEE_IDX = mem.COMMITTEE_IDX
+			AND mem.ADM_ID = #{admId}
+		WHERE (inf.COMMITTEE_STATUS = 'DP')
+			OR (inf.COMMITTEE_STATUS = 'RD')
+			OR (inf.COMMITTEE_STATUS = 'IN')
+		ORDER BY inf.COMMITTEE_IDX DESC
+	</select>
+	<select id="expIdxInfoData" parameterType="expertCommitteeVO"  resultType="expertCommitteeVO">
+		SELECT 
+			inf.COMMITTEE_IDX
+			,inf.COMMITTEE_TECH_ID
+			,kt.TECH_NAME AS COMMITTEE_TECH_NAME
+			,inf.COMMITTEE_YEAR
+			,inf.COMMITTEE_NUM
+			,inf.COMMITTEE_TECH_NUM
+			,inf.COMMITTEE_TYPE
+			,inf.COMMITTEE_AGD_CNT
+			,inf.COMMITTEE_AMG03_CNT
+			,inf.COMMITTEE_AMG04_CNT
+			,inf.COMMITTEE_AMG05_CNT
+			,inf.COMMITTEE_AMG06_CNT
+			,inf.COMMITTEE_TYPE
+			,inf.COMMITTEE_DATE_PICK_S
+			,inf.COMMITTEE_DATE_PICK_E
+			,inf.COMMITTEE_DATE_PICK_1
+			,inf.COMMITTEE_DATE_ADD_1
+			,inf.COMMITTEE_DATE_PICK_2
+			,inf.COMMITTEE_DATE_ADD_2
+			,inf.COMMITTEE_DATE_PICK_3
+			,inf.COMMITTEE_DATE_ADD_3
+			,inf.COMMITTEE_DATE_PICK
+			,inf.COMMITTEE_MODI_S
+			,inf.COMMITTEE_MODI_E
+			,inf.COMMITTEE_STATUS
+			,inf.COMMITTEE_CONFIRM_YN
+		FROM kaits_ex_commit_info inf
+		LEFT JOIN kaits_tech kt
+			ON kt.TECH_ID = inf.COMMITTEE_TECH_ID
+		WHERE 1=1
+			AND inf.COMMITTEE_IDX = #{committeeIdx}
+	</select>
+	
+	<select id="exeInfoData" parameterType="expertCommitteeVO"  resultType="expertCommitteeVO">
+		SELECT 
+			inf.COMMITTEE_IDX
+			,inf.COMMITTEE_TECH_ID
+			,kt.TECH_NAME AS COMMITTEE_TECH_NAME
+			,inf.COMMITTEE_YEAR
+			,inf.COMMITTEE_NUM
+			,inf.COMMITTEE_TECH_NUM
+			,inf.COMMITTEE_TYPE
+			,inf.COMMITTEE_AGD_CNT
+			,inf.COMMITTEE_AMG03_CNT
+			,inf.COMMITTEE_AMG04_CNT
+			,inf.COMMITTEE_AMG05_CNT
+			,inf.COMMITTEE_AMG06_CNT
+			,inf.COMMITTEE_TYPE
+			,inf.COMMITTEE_DATE_PICK_S
+			,inf.COMMITTEE_DATE_PICK_E
+			,inf.COMMITTEE_DATE_PICK_1
+			,inf.COMMITTEE_DATE_ADD_1
+			,inf.COMMITTEE_DATE_PICK_2
+			,inf.COMMITTEE_DATE_ADD_2
+			,inf.COMMITTEE_DATE_PICK_3
+			,inf.COMMITTEE_DATE_ADD_3
+			,inf.COMMITTEE_DATE_PICK
+			,inf.COMMITTEE_MODI_S
+			,inf.COMMITTEE_MODI_E
+			,inf.COMMITTEE_STATUS
+			,inf.COMMITTEE_CONFIRM_YN
+		FROM kaits_ex_commit_info inf
+		LEFT JOIN kaits_tech kt
+			ON kt.TECH_ID = inf.COMMITTEE_TECH_ID
+		WHERE 1=1
+			AND inf.COMMITTEE_IDX = #{committeeIdx}
+	</select>
+	<select id="getExLiveList" parameterType="expertCommitteeVO"  resultType="expertCommitteeVO">
+		SELECT 
+			inf.COMMITTEE_IDX
+			,inf.COMMITTEE_TECH_ID
+			,kt.TECH_NAME AS COMMITTEE_TECH_NAME
+			,inf.COMMITTEE_YEAR
+			,inf.COMMITTEE_NUM
+			,mem.ADM_ID AS MEM_IN_YN
+			,(SELECT COUNT(*) FROM kaits_ex_commit_member skecm WHERE skecm.COMMITTEE_IDX = inf.COMMITTEE_IDX AND skecm.COMMITTEE_OPT_COM = 'Y' ) AS COMMITTEE_MEMBER_CNT
+			,inf.COMMITTEE_TECH_NUM
+			,inf.COMMITTEE_AGD_CNT
+			,inf.COMMITTEE_AMG03_CNT
+			,inf.COMMITTEE_AMG04_CNT
+			,inf.COMMITTEE_AMG05_CNT
+			,inf.COMMITTEE_AMG06_CNT
+			,inf.COMMITTEE_TYPE
+			,inf.COMMITTEE_DATE_PICK_S
+			,inf.COMMITTEE_DATE_PICK_E
+			, <![CDATA[IF(STR_TO_DATE(inf.COMMITTEE_DATE_PICK_S, '%Y%m%d%H%i%s') <= NOW() AND STR_TO_DATE(inf.COMMITTEE_DATE_PICK_E, '%Y%m%d%H%i%s') >= NOW(), 'Y','N') AS DATE_CHECK_YN]]>
+			,inf.COMMITTEE_DATE_PICK_1
+			,inf.COMMITTEE_DATE_ADD_1
+			,inf.COMMITTEE_DATE_PICK_2
+			,inf.COMMITTEE_DATE_ADD_2
+			,inf.COMMITTEE_DATE_PICK_3
+			,inf.COMMITTEE_DATE_ADD_3
+			,inf.COMMITTEE_DATE_PICK
+			,inf.COMMITTEE_MODI_S
+			,inf.COMMITTEE_MODI_E
+			,inf.COMMITTEE_STATUS
+			,inf.COMMITTEE_CONFIRM_YN
+			,inf.LAST_UPDT
+			,inf.LAST_UPDUSR_ID
+			,(SELECT COUNT(*) FROM kaits_ex_commit_member skecm WHERE skecm.COMMITTEE_IDX = inf.COMMITTEE_IDX AND skecm.COMMITTEE_DATE_PICK = 'Y' ) AS COMMITTEE_MEMBER_CNT
+		FROM kaits_ex_commit_info inf
+		LEFT JOIN kaits_tech kt
+			ON kt.TECH_ID = inf.COMMITTEE_TECH_ID
+		INNER JOIN kaits_admin_authority auth
+			ON auth.ADM_AUTH_TECH = inf.COMMITTEE_TECH_ID
+			AND auth.ADM_AUTH_ID = #{admId}
+		LEFT JOIN kaits_ex_commit_member mem
+			ON inf.COMMITTEE_IDX = mem.COMMITTEE_IDX
+			AND mem.ADM_ID = #{admId}
+		WHERE 1=1
+			<![CDATA[AND inf.COMMITTEE_CONFIRM_YN <> 'N']]>
+		ORDER BY inf.COMMITTEE_IDX DESC
+	</select>
+	<select id="getExDateInfo" parameterType="exDataInfoVO" resultType="exDataInfoVO">
+		/** 전문위원회 > 참석일 선택  > 상세  기본 정보 조회 **/
+		SELECT 
+			inf.COMMITTEE_IDX
+			,inf.COMMITTEE_TECH_ID
+			,kt.TECH_NAME AS COMMITTEE_TECH_NAME
+			,inf.COMMITTEE_YEAR
+			,inf.COMMITTEE_NUM
+			,inf.COMMITTEE_TECH_NUM
+			,inf.COMMITTEE_AGD_CNT
+			,inf.COMMITTEE_AMG03_CNT
+			,inf.COMMITTEE_AMG04_CNT
+			,inf.COMMITTEE_AMG05_CNT
+			,inf.COMMITTEE_AMG06_CNT
+			,inf.COMMITTEE_TYPE
+			,inf.COMMITTEE_DATE_PICK_S
+			, date_format(inf.COMMITTEE_DATE_PICK_S, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_DATE_PICK_S_KO
+			,inf.COMMITTEE_DATE_PICK_E
+			, date_format(inf.COMMITTEE_DATE_PICK_E, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_DATE_PICK_E_KO
+			, <![CDATA[IF(STR_TO_DATE(inf.COMMITTEE_DATE_PICK_S, '%Y%m%d%H%i%s') <= NOW() AND STR_TO_DATE(inf.COMMITTEE_DATE_PICK_E, '%Y%m%d%H%i%s') >= NOW(), 'Y','N') AS DATE_CHECK_YN]]>
+			,inf.COMMITTEE_DATE_PICK_1
+			, date_format(inf.COMMITTEE_DATE_PICK_1, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_DATE_PICK_1_KO
+			,inf.COMMITTEE_DATE_ADD_1
+			,inf.COMMITTEE_DATE_PICK_2
+			, date_format(inf.COMMITTEE_DATE_PICK_2, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_DATE_PICK_2_KO
+			,inf.COMMITTEE_DATE_ADD_2
+			,inf.COMMITTEE_DATE_PICK_3
+			, date_format(inf.COMMITTEE_DATE_PICK_3, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_DATE_PICK_3_KO
+			,inf.COMMITTEE_DATE_ADD_3
+			,inf.COMMITTEE_DATE_PICK
+			, date_format(inf.COMMITTEE_DATE_PICK, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_DATE_PICK_KO
+			,inf.COMMITTEE_MODI_S
+			, date_format(inf.COMMITTEE_MODI_S, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_MODI_S_KO
+			,inf.COMMITTEE_MODI_E
+			, date_format(inf.COMMITTEE_MODI_E, '%Y년 %m월 %d일 %H시 %i분') as COMMITTEE_MODI_E_KO
+			,inf.COMMITTEE_STATUS
+			,inf.COMMITTEE_CONFIRM_YN
+			,inf.LAST_UPDT
+			, date_format(inf.LAST_UPDT, '%Y년 %m월 %d일 %H시 %i분') as LAST_UPDT_KO
+			,inf.LAST_UPDUSR_ID
+		FROM kaits_ex_commit_info inf
+		LEFT JOIN kaits_tech kt
+			ON kt.TECH_ID = inf.COMMITTEE_TECH_ID
+		WHERE 1=1
+			AND COMMITTEE_IDX = #{committeeIdx}
+	</select>
+	<select id="getDatePickStatus" parameterType="exDatePickStatusVO" resultType="exDatePickStatusVO">
+		/** 전문위원회 > 참석일 선택  > 상세 > 참석일선택 멤버별 선택 현황 조회  **/
+		 SELECT 
+			exm.COMMITTEE_IDX
+			,exm.ADM_ID
+			,adm.ADM_GROUP
+			,adm.ADM_NAME
+			,adm.ADM_COM
+			,adm.ADM_DEPT
+			,adm.ADM_POSITON
+			,adm.ADM_MOBILE1
+			,adm.ADM_MOBILE2
+			,adm.ADM_MOBILE3
+			,adm.ADM_EMAIL
+			,exm.COMMITTEE_DATE_PICK
+			,IF(exm.COMMITTEE_DATE_PICK = 'Y', 1, 0) AS COMMITTEE_DATE_PICK_CNT
+			,exm.COMMITTEE_DATE_PICK1
+			,IF(exm.COMMITTEE_DATE_PICK1 = 'Y', 1, 0) AS COMMITTEE_DATE_PICK1_CNT
+			,exm.COMMITTEE_DATE_PICK2
+			,IF(exm.COMMITTEE_DATE_PICK2 = 'Y', 1, 0) AS COMMITTEE_DATE_PICK2_CNT
+			,exm.COMMITTEE_DATE_PICK3
+			,IF(exm.COMMITTEE_DATE_PICK3 = 'Y', 1, 0) AS COMMITTEE_DATE_PICK3_CNT
+			,exm.COMMITTEE_DATE_PICK4
+			,IF(exm.COMMITTEE_DATE_PICK4 = 'Y', 1, 0) AS COMMITTEE_DATE_PICK4_CNT
+			,exm.COMMITTEE_DATE_PICK_ETC 
+		FROM kaits_ex_commit_member exm
+		LEFT JOIN kaits_admin_member adm
+			ON adm.ADM_ID = exm.ADM_ID
+		WHERE COMMITTEE_IDX = #{committeeIdx}
+		ORDER BY adm.ADM_GROUP ASC
+	</select>
+	<select id="getLoginMemberStat" parameterType="expertCommitteeMemberVO" resultType="expertCommitteeMemberVO">
+		SELECT 
+			COMMITTEE_IDX
+			,COMMITTEE_OPT_COM
+			,COMMITTEE_OPT_YN
+			,COMMITTEE_SIGN_VIEW_YN
+			,COMMITTEE_SIGN_VIEW
+			,COMMITTEE_SIGN_WRITE_YN
+			,COMMITTEE_SIGN_WRITE
+			,COMMITTEE_DATE_PICK
+			,COMMITTEE_DATE_PICK1
+			,COMMITTEE_DATE_PICK2
+			,COMMITTEE_DATE_PICK3
+			,COMMITTEE_DATE_PICK4
+			,COMMITTEE_DATE_PICK_ETC
+		FROM kaits_ex_commit_member
+		WHERE COMMITTEE_IDX = #{committeeIdx}
+			and ADM_ID = #{admId}
+	</select>
+	<select id="getCommitteeMemberList" parameterType="expertCommitteeMemberVO" resultType="expertCommitteeMemberVO">
+		SELECT 
+			kecm.COMMITTEE_IDX
+			, keci.COMMITTEE_TECH_ID
+			, kam.ADM_ID
+			, kecm.COMMITTEE_SIGN_VIEW
+			, kecm.COMMITTEE_SIGN_WRITE
+			, kecm.COMMITTEE_SIGN_SAVE
+			, kecm.COMMITTEE_DATE_PICK
+			, kecm.COMMITTEE_DATE_PICK1
+			, kecm.COMMITTEE_DATE_PICK2
+			, kecm.COMMITTEE_DATE_PICK3
+			, kecm.COMMITTEE_DATE_PICK4
+			, kecm.COMMITTEE_DATE_PICK_ETC
+			, kam.ADM_GROUP
+			, kam.ADM_CAR_YEAR
+			, kam.ADM_CAR_NUM
+			, kam.ADM_NAME
+			, kam.ADM_DEPT
+			, kam.ADM_POSITON
+			, kam.ADM_COM
+			, kam.ADM_MOBILE1
+			, kam.ADM_MOBILE2
+			, kam.ADM_MOBILE3
+			, CONCAT(IFNULL(kam.ADM_MOBILE1,''), IFNULL(kam.ADM_MOBILE2,''), IFNULL(kam.ADM_MOBILE3,'')) AS ADM_MOBILE
+			, kam.ADM_EMAIL
+		<if test="committeeTechId != null">
+			FROM kaits_admin_authority kaa
+			INNER JOIN kaits_admin_member kam
+				ON kam.ADM_ID = kaa.ADM_AUTH_ID
+			LEFT JOIN kaits_ex_commit_member kecm
+				ON kecm.ADM_ID = kaa.ADM_AUTH_ID
+				AND kecm.COMMITTEE_IDX = #{committeeIdx}
+			LEFT JOIN kaits_ex_commit_info keci
+				ON keci.COMMITTEE_IDX = kecm.COMMITTEE_IDX
+			WHERE kaa.ADM_AUTH_TECH = #{committeeTechId}
+		</if>
+		<if test="committeeTechId == null">
+			FROM  kaits_ex_commit_member kecm
+			INNER JOIN kaits_ex_commit_info keci
+				ON keci.COMMITTEE_IDX = kecm.COMMITTEE_IDX
+			INNER JOIN kaits_admin_member kam
+				ON kam.ADM_ID = kecm.ADM_ID
+			WHERE kecm.COMMITTEE_IDX = #{committeeIdx}
+		</if>
+	</select>
+	<delete id="deleteCommitteeMember" parameterType="expertCommitteeMemberVO">
+		DELETE FROM kaits_ex_commit_member WHERE COMMITTEE_IDX = #{committeeIdx} AND ADM_ID = #{admId}
+	</delete>
+	<update id="updateCommitteeInfo" parameterType="expertCommitteeVO">
+	UPDATE kaits_ex_commit_info SET
+		COMMITTEE_TYPE = #{committeeType}
+		, COMMITTEE_DATE_PICK_S = #{committeeDatePickS}
+		, COMMITTEE_DATE_PICK_E = #{committeeDatePickE}
+		, COMMITTEE_DATE_PICK_1 = #{committeeDatePick1}
+		, COMMITTEE_DATE_ADD_1 = #{committeeDateAdd1}
+		, COMMITTEE_DATE_PICK_2 = #{committeeDatePick2}
+		, COMMITTEE_DATE_ADD_2 = #{committeeDateAdd2}
+		, COMMITTEE_DATE_PICK_3 = #{committeeDatePick3}
+		, COMMITTEE_DATE_ADD_3 = #{committeeDateAdd3}
+		, COMMITTEE_MODI_S = #{committeeModiS}
+		, COMMITTEE_MODI_E = #{committeeModiS}
+		, LAST_UPDT = NOW()
+		, LAST_UPDUSR_ID = #{admId}
+	WHERE COMMITTEE_IDX = #{committeeIdx}
+	</update>
+	<update id="updateCommitteeInfoConfirmation" parameterType="expertCommitteeVO">
+	UPDATE kaits_ex_commit_info SET
+		COMMITTEE_DATE_PICK = #{committeeDatePick}
+		, COMMITTEE_MODI_S = #{committeeModiS}
+		, COMMITTEE_MODI_E = #{committeeModiE}
+		, COMMITTEE_CONFIRM_YN = 'Y'
+		, COMMITTEE_STATUS = 'RD'
+		, LAST_UPDT = NOW()
+		, LAST_UPDUSR_ID = #{admId}
+	WHERE COMMITTEE_IDX = #{committeeIdx}
+	</update>
+	<update id="updateCommitteeMember" parameterType="expertCommitteeMemberVO">
+	UPDATE kaits_ex_commit_member SET
+		COMMITTEE_DATE_PICK = 'Y'
+		, COMMITTEE_DATE_PICK1 = #{ committeeDatePick1 }
+		, COMMITTEE_DATE_PICK2 = #{ committeeDatePick2 }
+		, COMMITTEE_DATE_PICK3 = #{ committeeDatePick3 }
+		, COMMITTEE_DATE_PICK4 = #{ committeeDatePick4 }
+		, COMMITTEE_DATE_PICK_ETC = #{ committeeDatePickEtc }
+	WHERE COMMITTEE_IDX = #{ committeeIdx } AND ADM_ID = #{ admId }
+	</update>
+	<update id="updateCommitteeInfoCancel" parameterType="expertCommitteeVO">
+	UPDATE kaits_ex_commit_info SET
+		COMMITTEE_DATE_PICK = NULL
+		, COMMITTEE_MODI_S = NULL
+		, COMMITTEE_MODI_E = NULL
+		, COMMITTEE_STATUS = 'CE'
+		, LAST_UPDT = NOW()
+		, LAST_UPDUSR_ID = #{admId}
+	WHERE COMMITTEE_IDX = #{committeeIdx}
+	</update>
+	<update id="updateCommitteeInfoStart" parameterType="expertCommitteeVO">
+	UPDATE kaits_ex_commit_info SET
+		  COMMITTEE_STATUS = 'CI'
+		, LAST_UPDT = NOW()
+		, LAST_UPDUSR_ID = #{admId}
+	WHERE COMMITTEE_IDX = #{committeeIdx}
+	</update>
+	<insert id="insertCommitteeOpinion" parameterType="expertCommitteeOpinionVO">
+		INSERT INTO kaits_ex_commit_opinion (
+			  COMMITTEE_IDX
+			, AGD_CODE
+			, COMMITTEE_ADM_ID
+			, COMMITTEE_OPT_01
+			, COMMITTEE_OPT_02
+			, COMMITTEE_OPT_03
+			, COMMITTEE_OPT_04
+			, COMMITTEE_OPT_05
+			, COMMITTEE_OPT_06
+			, COMMITTEE_OPT_07
+			, COMMITTEE_OPT_08
+			, COMMITTEE_OPT_GENERAL
+			, COMMITTEE_OPT_FLAG
+			, TECH_ITEM_ID
+			, COMMITTEE_OPT_STATUS
+			, LAST_UPDT
+		) VALUES (
+			  #{ committeeIdx }
+			  , #{ agdCode }
+			  , #{ committeeAdmId }
+			  , #{ committeeOpt01 }
+			  , #{ committeeOpt02 }
+			  , #{ committeeOpt03 }
+			  , #{ committeeOpt04 }
+			  , #{ committeeOpt05 }
+			  , #{ committeeOpt06 }
+			  , #{ committeeOpt07 }
+			  , #{ committeeOpt08 }
+			  , #{ committeeOptGeneral }
+			  , #{ committeeOptFlag }
+			  , #{ techItemId }
+			  , #{ committeeOptStatus }
+			  , NOW()
+		)
+	</insert>
+	<insert id="updateCommitteeOpinion" parameterType="expertCommitteeOpinionVO">
+		UPDATE kaits_ex_commit_opinion SET
+			  COMMITTEE_OPT_01 = #{ committeeOpt01 }
+			, COMMITTEE_OPT_02 = #{ committeeOpt02 }
+			, COMMITTEE_OPT_03 = #{ committeeOpt03 }
+			, COMMITTEE_OPT_04 = #{ committeeOpt04 }
+			, COMMITTEE_OPT_05 = #{ committeeOpt05 }
+			, COMMITTEE_OPT_06 = #{ committeeOpt06 }
+			, COMMITTEE_OPT_07 = #{ committeeOpt07 }
+			, COMMITTEE_OPT_08 = #{ committeeOpt08 }
+			, COMMITTEE_OPT_GENERAL = #{ committeeOptGeneral }
+			, COMMITTEE_OPT_FLAG = #{ committeeOptFlag }
+			, TECH_ITEM_ID = #{ techItemId }
+			, COMMITTEE_OPT_STATUS = #{ committeeOptStatus }
+			, LAST_UPDT = NOW()
+		WHERE COMMITTEE_IDX = #{ committeeIdx }
+			AND AGD_CODE = #{ agdCode }
+			AND COMMITTEE_ADM_ID = #{ committeeAdmId }
+	</insert>
+	<select id="selectCommitteeOpinionGroupCount" parameterType="expertCommitteeOpinionVO" resultType="expertCommitteeOpinionVO">
+		select
+			keco.AGD_CODE
+			, IFNULL(keco.COMMITTEE_OPT_STATUS, 'NO') AS COMMITTEE_OPT_STATUS
+			, COUNT(*) AS COMMITTEE_OPT_STATUS_COUNT
+		from kaits_agenda_stat kas 
+		inner join kaits_ex_commit_opinion keco 
+			on keco.AGD_CODE = kas.AGD_CODE 
+			and keco.COMMITTEE_OPT_STATUS != 'DD'
+			and keco.COMMITTEE_ADM_ID = #{committeeAdmId}
+		where kas.AGD_EX_IDX = #{committeeIdx}
+		group by keco.COMMITTEE_OPT_STATUS
+	</select>
+	<select id="selectCommitteeOpinionCount" parameterType="expertCommitteeOpinionVO" resultType="int">
+		select COUNT(*)
+		from kaits_ex_commit_opinion keco
+		where keco.COMMITTEE_IDX = #{committeeIdx}
+			and keco.AGD_CODE = #{agdCode}
+			and keco.COMMITTEE_ADM_ID = #{committeeAdmId}
+	</select>
+	<select id="selectCommitteeOpinion" parameterType="expertCommitteeOpinionVO" resultType="expertCommitteeOpinionVO">
+		select 
+			keco.COMMITTEE_IDX
+			, keco.AGD_CODE
+			, keco.COMMITTEE_ADM_ID
+			, keco.COMMITTEE_OPT_01
+			, keco.COMMITTEE_OPT_02
+			, keco.COMMITTEE_OPT_03
+			, keco.COMMITTEE_OPT_04
+			, keco.COMMITTEE_OPT_05
+			, keco.COMMITTEE_OPT_06
+			, keco.COMMITTEE_OPT_07
+			, keco.COMMITTEE_OPT_08
+			, keco.COMMITTEE_OPT_GENERAL
+			, keco.COMMITTEE_OPT_FLAG
+			, keco.TECH_ITEM_ID
+			, keco.COMMITTEE_OPT_STATUS
+		from kaits_ex_commit_opinion keco
+		where keco.COMMITTEE_IDX = #{committeeIdx}
+			and keco.AGD_CODE = #{agdCode}
+			and keco.COMMITTEE_ADM_ID = #{committeeAdmId}
+	</select>
+	
+	<select id="expMemOpinionList" parameterType="expertCommitteeOpinionVO" resultType="expertCommitteeOpinionVO">
+		select 
+			keco.COMMITTEE_IDX
+			, keco.AGD_CODE
+			, keco.COMMITTEE_ADM_ID
+			, keco.COMMITTEE_OPT_01
+			, keco.COMMITTEE_OPT_02
+			, keco.COMMITTEE_OPT_03
+			, keco.COMMITTEE_OPT_04
+			, keco.COMMITTEE_OPT_05
+			, keco.COMMITTEE_OPT_06
+			, keco.COMMITTEE_OPT_07
+			, keco.COMMITTEE_OPT_08
+			, keco.COMMITTEE_OPT_GENERAL
+			, keco.COMMITTEE_OPT_FLAG
+			, keco.TECH_ITEM_ID
+			, keco.COMMITTEE_OPT_STATUS
+		from kaits_ex_commit_opinion keco
+		LEFT JOIN kaits_agenda_stat agd
+			ON agd.AGD_CODE = keco.AGD_CODE
+		where keco.COMMITTEE_IDX = #{committeeIdx}
+			and keco.COMMITTEE_ADM_ID = #{committeeAdmId}
+		ORDER BY agd.AGD_EX_SORT ASC
+	</select>
+	
+	<select id="expMemPrintList" parameterType="expertPrintOpinionVO" resultType="expertPrintOpinionVO">
+		SELECT
+			keco.COMMITTEE_IDX
+			,agd.AGD_EX_IDX
+			,agd.AGD_VIEW_CODE
+			,agd.RCPT_META_CODE
+			,agd.AGD_EX_SORT
+			,met.RCPT_TYPE_CODE
+			,met.RCPT_COM_CODE
+			,com.CPN_NM
+			,rep.RCPT_CODE
+			, keco.AGD_CODE
+			, keco.COMMITTEE_ADM_ID
+			, adm.ADM_GROUP
+			, adm.ADM_NAME
+			, exm.COMMITTEE_SIGN_VIEW
+			, exm.COMMITTEE_SIGN_WRITE
+			, exm.COMMITTEE_SIGN_SAVE
+			, keco.COMMITTEE_OPT_01
+			, keco.COMMITTEE_OPT_02
+			, keco.COMMITTEE_OPT_03
+			, keco.COMMITTEE_OPT_04
+			, keco.COMMITTEE_OPT_05
+			, keco.COMMITTEE_OPT_06
+			, keco.COMMITTEE_OPT_07
+			, keco.COMMITTEE_OPT_08
+			, keco.COMMITTEE_OPT_GENERAL
+			, keco.COMMITTEE_OPT_FLAG
+			, keco.TECH_ITEM_ID
+			, keco.COMMITTEE_OPT_STATUS
+		FROM kaits_ex_commit_opinion keco
+		LEFT JOIN kaits_agenda_stat agd
+			ON agd.AGD_CODE = keco.AGD_CODE
+		LEFT JOIN kaits_meta met
+			ON met.RCPT_META_CODE = agd.RCPT_META_CODE
+		LEFT JOIN kaits_com_member com
+			ON com.CPN_ID = met.RCPT_COM_CODE
+		LEFT JOIN kaits_admin_member adm
+			ON adm.ADM_ID = #{committeeAdmId}
+		LEFT JOIN kaits_ex_commit_member exm
+			ON exm.COMMITTEE_IDX =  #{committeeIdx}
+			AND exm.ADM_ID = #{committeeAdmId}
+		LEFT JOIN kaits_receipt_stat rep
+			ON rep.RCPT_META_CODE =agd.RCPT_META_CODE
+		WHERE keco.COMMITTEE_IDX =  #{committeeIdx}
+			AND keco.COMMITTEE_ADM_ID = #{committeeAdmId}
+		ORDER BY agd.AGD_EX_SORT ASC
+		
+	</select>
+	
+	
+	<update id="updateCommitteeMemberStat" parameterType="expertCommitteeMemberVO">
+	UPDATE kaits_ex_commit_member SET
+		COMMITTEE_OPT_COM = 'Y'
+	WHERE COMMITTEE_IDX = #{committeeIdx} AND ADM_ID = #{admId}
+	</update>
+	<update id="updateCommitteeInfoStatus" parameterType="expertCommitteeVO">
+	UPDATE kaits_ex_commit_info SET
+		COMMITTEE_STATUS = #{committeeStatus}
+		, LAST_UPDT = NOW()
+		, LAST_UPDUSR_ID = #{admId}
+	WHERE COMMITTEE_IDX = #{committeeIdx}
+	</update>
+	<select id="getCommitteeAgendaList" parameterType="expertAgendaStatVO" resultType="expertAgendaStatVO">
+		SELECT 
+			krs.RCPT_CODE
+			, kas.AGD_CODE
+			, kas.AGD_VIEW_CODE
+			, kas.AGD_TECH_ID
+			, kas.AGD_EX_IDX
+			, kas.AGD_STATUS
+			, FUN_GET_AGENDA_STATUS_NAME(kas.AGD_STATUS) AS AGD_STATUS_NAME
+			, kas.AGD_STATUS_CODE
+			, kas.AGD_STATUS_LAST
+			, DATE_FORMAT(kas.AGD_STATUS_LAST, '%Y-%m-%d') as AGD_STATUS_LAST_STR
+			, kas.AGD_REG_ID
+			, kas.AGD_REG_DATE
+			, DATE_FORMAT(kas.AGD_REG_DATE, '%Y년 %m월 %d일 %k:%i:%s') as AGD_REG_DATE_STR
+			, km.RCPT_META_CODE
+			, km.RCPT_TYPE_CODE
+			, FUN_GET_RCPT_TYPE_NAME(km.RCPT_TYPE_CODE) as RCPT_TYPE_CODE_NAME
+			, km.RCPT_COM_CODE
+			, km.RCTP_RE_YN
+			, km.RCTP_RE_CODE
+			, km.RCPT_TECH_FORM
+			, km.RCPT_EX_REASON_SALE
+			, km.RCPT_EX_REASON_S_COM
+			, km.RCPT_EX_REASON_TRANS
+			, km.RCPT_EX_REASON_T_COM
+			, km.RCPT_EX_REASON_ETC
+			, km.RCPT_EX_REASON_E_COM
+			, km.RCPT_EX_DATE
+			, km.RCPT_TECH_QUA
+			, km.RCPT_REASON
+			, km.RCPT_LAW01
+			, km.RCPT_LAW02
+			, km.RCPT_LAW03
+			, kcm.CPN_S_NO
+			, kcm.CPN_B_NO
+			, kcm.CPN_NM
+			, kcm.CPN_CEO
+			, kcm.CPN_B_ZIP
+			, kcm.CPN_B_ADD1
+			, kcm.CPN_B_ADD2
+			, kcm.CPN_B_PHONE1
+			, kcm.CPN_B_PHONE2
+			, kcm.CPN_B_PHONE3
+			, kcm.CPN_B_FAX1
+			, kcm.CPN_B_FAX2
+			, kcm.CPN_B_FAX3
+			, kcm.CPN_DUTY_CODE
+			, kcm.CPN_S_ZIP
+			, kcm.CPN_S_ADD1
+			, kcm.CPN_S_ADD2
+			, kcm.CPN_S_PHONE1
+			, kcm.CPN_S_PHONE2
+			, kcm.CPN_S_PHONE3
+			, kcm.CPN_P_NM
+			, kcm.CPN_P_DEPT
+			, kcm.CPN_P_POSITION
+			, kcm.CPN_P_PHONE1
+			, kcm.CPN_P_PHONE2
+			, kcm.CPN_P_PHONE3
+			, kcm.CPN_P_MOBILE1
+			, kcm.CPN_P_MOBILE2
+			, kcm.CPN_P_MOBILE3
+			, kcm.CPN_P_EMAIL
+			, kt.TECH_NAME 
+			, kti.TECH_ITEM_NAME 
+			, kmt.TECH_RCPT_TECH_NM 
+		FROM kaits_agenda_stat kas
+		INNER JOIN kaits_meta km
+			ON km.RCPT_META_CODE = kas.RCPT_META_CODE
+		INNER JOIN kaits_receipt_stat krs
+			ON krs.RCPT_META_CODE = km.RCPT_META_CODE
+		LEFT JOIN kaits_com_member kcm
+			ON kcm.CPN_ID = km.RCPT_COM_CODE
+		inner join kaits_meta_tech kmt
+			on kmt.RCPT_META_CODE = km.RCPT_META_CODE 
+			and kmt.TECH_RCPT_NUM_SEQ = 1
+		inner join kaits_tech kt 
+			on kt.TECH_ID = kas.AGD_TECH_ID
+		inner join kaits_tech_item kti 
+			on kti.TECH_NTC_GID = kmt.TECH_NTC_GID
+			and kti.TECH_ID = kmt.TECH_NCT_CODE
+			and kti.TECH_ITEM_ID = kmt.TECH_UNIQ_ID
+		WHERE 1=1
+			and kas.AGD_EX_IDX = #{agdExIdx}
+
+	</select>
+	
+	<select id="getAgendaList" parameterType="ExpertAgendaListVO" resultType="ExpertAgendaListVO">
+		SELECT 
+			opt.COMMITTEE_IDX
+			,opt.AGD_CODE
+			,agd.AGD_VIEW_CODE
+			,agd.RCPT_META_CODE
+			,agd.AGD_EX_SORT
+			,met.RCPT_TYPE_CODE
+			,met.RCPT_COM_CODE
+			,com.CPN_NM
+			,rep.RCPT_CODE
+			,opt.COMMITTEE_ADM_ID
+			,opt.COMMITTEE_OPT_STATUS
+		FROM kaits_ex_commit_opinion opt
+		LEFT JOIN kaits_agenda_stat agd
+			ON agd.AGD_CODE = opt.AGD_CODE
+		LEFT JOIN kaits_meta met
+			ON met.RCPT_META_CODE = agd.RCPT_META_CODE
+		LEFT JOIN kaits_com_member com
+			ON com.CPN_ID = met.RCPT_COM_CODE
+		LEFT JOIN kaits_receipt_stat rep
+			ON rep.RCPT_META_CODE =agd.RCPT_META_CODE
+		WHERE 1=1
+		AND COMMITTEE_IDX = #{committeeIdx}
+		AND COMMITTEE_ADM_ID = #{committeeAdmId}
+		ORDER BY agd.AGD_EX_SORT ASC
+	</select>	
+	
+	<select id="getAgendaTList" parameterType="ExpertAgendaListVO" resultType="ExpertAgendaListVO">
+		SELECT 
+			agd.RCPT_META_CODE
+			,met.RCPT_TYPE_CODE
+			,tch.TECH_UNIQ_ID
+			,tch.TECH_RCPT_TECH_NM
+		FROM kaits_ex_commit_opinion opt
+		LEFT JOIN kaits_agenda_stat agd
+			ON agd.AGD_CODE = opt.AGD_CODE
+		LEFT JOIN kaits_meta met
+			ON met.RCPT_META_CODE = agd.RCPT_META_CODE
+		LEFT JOIN kaits_meta_tech tch
+			ON tch.RCPT_META_CODE = agd.RCPT_META_CODE
+		WHERE 1=1
+		AND COMMITTEE_IDX = #{committeeIdx}
+		AND COMMITTEE_ADM_ID = #{committeeAdmId}
+		ORDER BY opt.AGD_CODE ASC
+	</select>
+	
+	<select id="expAgendaList" parameterType="ExpertAgendaListVO" resultType="ExpertAgendaListVO">
+		SELECT 
+			agd.AGD_CODE
+			,agd.AGD_EX_IDX
+			,agd.AGD_VIEW_CODE
+			,agd.RCPT_META_CODE
+			,agd.AGD_EX_SORT
+			,met.RCPT_TYPE_CODE
+			,met.RCPT_COM_CODE
+			,com.CPN_NM
+			,rep.RCPT_CODE
+		FROM kaits_agenda_stat agd
+			LEFT JOIN kaits_meta met
+				ON met.RCPT_META_CODE = agd.RCPT_META_CODE
+			LEFT JOIN kaits_com_member com
+				ON com.CPN_ID = met.RCPT_COM_CODE
+			LEFT JOIN kaits_receipt_stat rep
+				ON rep.RCPT_META_CODE =agd.RCPT_META_CODE
+			WHERE 1=1
+			AND agd.AGD_EX_IDX = #{committeeIdx}
+		ORDER BY agd.AGD_EX_SORT ASC
+	</select>
+	
+	<select id="expAgendaTList" parameterType="ExpertAgendaListVO" resultType="ExpertAgendaListVO">
+		SELECT 
+			agd.AGD_CODE
+			,agd.RCPT_META_CODE
+			,met.RCPT_TYPE_CODE
+			,tch.TECH_UNIQ_ID
+			,tch.TECH_RCPT_TECH_NM
+		FROM kaits_agenda_stat agd
+		LEFT JOIN kaits_meta met
+			ON met.RCPT_META_CODE = agd.RCPT_META_CODE
+		LEFT JOIN kaits_meta_tech tch
+			ON tch.RCPT_META_CODE = agd.RCPT_META_CODE
+		WHERE 1=1
+		AND agd.AGD_EX_IDX = #{committeeIdx}
+	</select>	
+	
+	<select id="getTechAreaList" parameterType="expertAgendaTechVO" resultType="expertAgendaTechVO">
+		SELECT 
+			tch.TECH_ITEM_ID
+			,tch.TECH_NTC_GID
+			,tch.TECH_ID
+			,tch.TECH_ITEM_NAME
+			,tch.TECH_ITEM_SORT
+			,tch.TECH_ITEM_MEMO
+		FROM kaits_tech_his his
+		RIGHT JOIN kaits_tech_item tch
+			ON tch.TECH_NTC_GID = his.TECH_NTC_GID
+			AND TECH_ID = #{techId}
+		WHERE 1=1
+			AND TECH_NTC_USE_YN = 'Y'
+		ORDER BY tch.TECH_ITEM_SORT ASC
+	</select>
+</mapper>
